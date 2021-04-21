@@ -25,6 +25,8 @@
         src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js">
     </script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
+
 <style>
 /* unvisited link */
 a:link {
@@ -120,29 +122,33 @@ canvas.clickable:hover{
 }
 
 div.relative {
-  position: relative;
-  height: 512px;
-  border: 1px solid black;
-  width:100% ;
+    position: relative;
+    width:100% ;
+    min-height : 600px ;
+    max-height : 100% ;
+    max-width: 1024px
 } 
 
 div.editor {
-  position : absolute;
-  top: 0px;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  width:100%;
+    position    : absolute ;
+    margin-left : 20px ;
+    width       : 90%;
+    height      : 100% ;
+    border      : 3px solid grey;
+    border-radius: 10px ;
 }
+
 #loading { 
     position : fixed ;
     bottom : 20px ;
     left : 10px ;
 }
+
 #loadProgress {
     width : 300px ;
     background-color: #ddd ;
 }
+
 #loadBar {
     width : 0% ;
     height : 20px ;
@@ -174,26 +180,10 @@ div.editor {
         </tr>
     </table>
     
-
-    <table style='width:100%' id=editors>
-        <tr id='compEditors' style='display:none'>
-            <td id='ecomp'> 
-                <h2>comp editor</h2>
-                <div class=relative id=compEditorContainer>
-                    <div class=editor id='compEditor'></div>
-                </div>
-            </td>
-        </tr>
-
-        <tr  id='initEditors' style='display:none'>
-            <td id='einit'> 
-                <h2>init editor</h2>
-                <div class=relative id=initEditorContainer>
-                    <div class=editor id='initEditor'></div>
-                </div>
-            </td>
-         </tr>
-    </table>
+    <div class='relative' id='editorSection' style='display:none'>
+        <h2>Source code editor</h2>
+        <div class='editor' id='editor'></div>
+    </div>
     
 <!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
 <!-- All shaders included here (codes written in GLSL)                 -->
@@ -228,7 +218,8 @@ layout (location=1) out vec4 domain1 ;
 void main(){
     vec2 c = vec2(0.5) ;
     float d = length(cc-c) ;
-    vec4 domain = ( d >0.1 && d<0.4 ) ? vec4(1.) : vec4(0.) ;
+
+    vec4 domain = vec4(1.) ;
 
     domain0 = domain ;
     domain1 = domain ;
@@ -363,6 +354,7 @@ precision highp usampler2D ;
 #define fig     color0.g
 #define sig     color0.b
 #define time    color0.a
+#define MAX_TIME    1.e8
 
 
 // interface variables ...................................................
@@ -381,6 +373,7 @@ void main(){
     vlt = 0. ;
     fig = 1. ;
     sig = 0.4 ;
+    time = MAX_TIME ;
 
     ocolor0 = vec4(color0) ;
     return ;
@@ -416,6 +409,11 @@ uniform float   tau_pv, tau_v1, tau_v2, tau_pw, tau_mw, tau_d, tau_0,
                 tau_r,  tau_si, K,      V_sic,  V_c,    V_v ,  C_si ;
 
 uniform float   dt, lx, diffCoef, C_m ;
+uniform float   pacemakerPositionX ;
+uniform float   pacemakerPositionY ;
+uniform float   pacemakerPeriod ;
+uniform float   pacemakerRadius ;
+uniform bool    pacemakerActive ;
 
 uniform sampler2D   icolor0 ;
 
@@ -430,6 +428,7 @@ out vec4 ocolor0 ;
 #define fig     color0.g
 #define sig     color0.b
 #define time    color0.a
+#define MAX_TIME    1.e8
 
 
 // direction related macros ..............................................
@@ -527,6 +526,15 @@ void main(){
     // update solution time ..............................................
     time += dt ;
 
+    if ( time > pacemakerPeriod ){
+        time = 0. ;
+        
+        if ( length(vec2(pacemakerPositionX,pacemakerPositionY)
+                    - cc )< pacemakerRadius && pacemakerActive ){
+            vlt = 1. ;
+        }
+    }
+
     // output colors .....................................................
     ocolor0 = vec4(color0) ;
     
@@ -556,6 +564,7 @@ precision highp usampler2D ;
 #define fig     color0.g
 #define sig     color0.b
 #define time    color0.a
+#define MAX_TIME    1.e8
 
 
 in vec2 cc ;
@@ -619,7 +628,7 @@ void main(){
  *========================================================================
  */
 function source( sid ){
-    return document.getElementById( sid ).innerHTML ;
+    return  document.getElementById( sid ).innerHTML.trim() ;
 }
 /*========================================================================
  * Global Parameters
@@ -848,6 +857,22 @@ function loadWebGL(){
     env.allFloats.push( 'diffCoef', 'C_m', 'lx','dt' );
 
 /*------------------------------------------------------------------------
+ * pacemaker
+ *-----------------------------------------------------------------------
+ */
+    env.pacemakerPeriod = 150 ;
+    env.pacemakerPositionX = 0.2 ;
+    env.pacemakerPositionY = 0.1 ;
+    env.pacemakerRadius = 0.03 ;
+    env.pacemakerActive = false ;
+
+    env.pacemakerFloats = [ 'pacemakerPeriod', 'pacemakerPositionX','pacemakerPositionY', 'pacemakerRadius' ] ;
+    env.pacemakerBools = [ 'pacemakerActive' ] ;
+
+    env.allFloats.push(...env.pacemakerFloats ) ;
+    env.allInts.push( 'pacemakerActive' ) ;
+    
+/*------------------------------------------------------------------------
  * Time stepping solvers
  *------------------------------------------------------------------------
  */
@@ -920,9 +945,60 @@ function loadWebGL(){
     } );
     env.plot2d.initialize() ;
 
+    env.plot = new Abubu.SignalPlot( {
+            noPltPoints : 1024,
+            grid        : 'on' ,
+            nx          : 5 ,
+            ny          : 7 ,
+            xticks : { mode : 'auto', unit : 'ms', font:'11pt Times'} ,
+            yticks : { mode : 'auto', unit : '', precision : 1 } ,
+            canvas      : document.getElementById('canvas_2'),
+            legend      : {visible: true , place: 'top-right', 
+                location : [0.15,0.05],
+                font :"bold 14pt Times",
+                length: 0.1} ,
+
+    });
+
+    env.vsgn = env.plot.addSignal( env.fcolor0, {
+            channel : 'r',
+            name : 'Scaled membrane potential',
+            minValue : -0.2 ,
+            maxValue : 1.2 ,
+            restValue: 0,
+            color : [0.5,0,0],
+            visible: true,
+            linewidth : 3,
+            timeWindow: 1000.,
+            probePosition : [0.5,0.5] , } ) ;
+
     env.display = function(){
+        env.plot.render() ;
         env.plot2d.render() ;
+
     }
+
+    env.probePosition = env.plot2d.probePosition ;
+    Object.defineProperty( env, 'probePositionX' , {
+        get : ()=>{
+            return  env.probePosition[0] ;
+        } ,
+        set : (nv) =>{
+            env.probePosition[0] = nv ;
+            env.plot2d.probePosition = env.probePosition ;
+            env.plot.probePosition = env.probePosition ;
+        } 
+    } ) ;
+    Object.defineProperty( env, 'probePositionY' , {
+        get : ()=>{
+            return  env.probePosition[1] ;
+        } ,
+        set : (nv) =>{
+            env.probePosition[1] = nv ;
+            env.plot2d.probePosition = env.probePosition ;
+            env.plot.probePosition = env.probePosition ;
+        } 
+    } ) ;
 
 /*------------------------------------------------------------------------
  * click
@@ -982,9 +1058,9 @@ function loadWebGL(){
             icolor0 : { type : 't', value : env.fcolor0         } ,
             radius  : { type : 'f', value : env.clicker.radius  } ,
             clickPosition 
-                    : { type : 'v2', value : [0,0]              } ,
-            adding : { type : 'b', value : false                } ,
-            pacing : { type : 'b', value : true                 } ,
+                    : { type : 'v2',value : [0,0]               } ,
+            adding  : { type : 'b', value : false               } ,
+            pacing  : { type : 'b', value : true                } ,
         } ,
         targets : {
             odomain : { location : 0, target : env.sdomain } ,
@@ -1006,7 +1082,153 @@ function loadWebGL(){
             env.zeroFluxDirections.render() ;
         } 
     } ) ; 
-            
+
+/*------------------------------------------------------------------------
+ * save and reload
+ *------------------------------------------------------------------------
+ */
+    class SaveAndReload{
+        constructor(opt){
+            this.jsonObject = {}  ;
+            this.filename = opt?.filename ?? '3v-save' ;
+            this.comments = opt?.comments ?? '' ;
+
+            this.loader = document.createElement( 'input' ) ;
+            this.loader.setAttribute( 'type', 'file' ) ;
+
+            // read the chose files
+            this.loader.onchange = ()=>{
+                if( !this.loader.files[0] ){
+                    console.log('No file selected') ;
+                }
+
+                let file = this.loader.files[0] ;
+
+                // load the zip file
+                JSZip.loadAsync(file, {base64:true})
+                .then((zip)=>{
+                    // promise returning the data.json as text
+                    return zip.files['data.json'].async('text') ;       
+                } )
+                /* process the data as JSON */
+                .then((data)=>{
+                    let json = JSON.parse(data) ;
+
+                    // read floats from json
+                    for(let name of env.allFloats)
+                        env[name] = json[name] ;
+                    env.time = json.time ;
+                    
+                    // read ints from json
+                    for(let name of env.allInts)
+                        env[name] = json[name] ;
+
+                    this.comments = json.comments ;
+
+                    env.GUI.updateDisplay() ;
+
+                    // update textures from json
+                    env.fcolor0.data = new Float32Array( json.color0 ) ; 
+                    env.scolor0.data = new Float32Array( json.color0 ) ; 
+
+                    env.fdomain.data = new Float32Array( json.domain ) ;
+                    env.sdomain.data = new Float32Array( json.domain ) ;
+
+                    // recalculate zero flux directions
+                    env.zeroFluxDirections.render() ;
+                } ) ;
+            }
+        } /* End of constructor */
+
+        reload(){
+            this.loader.click() ;
+        }
+
+        save(){
+            this.jsonObject.comments = this.comments ;
+
+            // add all floats to the jsonObject ..........................
+            for(let name of env.allFloats)
+                this.jsonObject[name] = env[name] ;
+            this.jsonObject.time = env.time ;
+
+            // add all integers to the jsonObject ........................
+            for(let name of env.allInts)
+                this.jsonObject[name] = env[name] ;
+        
+            // add texture values to the json ............................
+            this.jsonObject.domain  = Array.from(env.fdomain.value) ;
+            this.jsonObject.color0 = Array.from(env.fcolor0.value) ;
+
+            // create a zip file .........................................
+            let zip = new JSZip() ;
+
+            // zip the jsonObject as a string file .......................
+            zip.file( "data.json", 
+                    JSON.stringify(this.jsonObject)) ;
+
+            // compress the zip file and save to disk ....................
+            zip.generateAsync(
+            {   type:"base64", 
+                compression: "DEFLATE", 
+                //compressionOptions:{ level: 0 }
+            }).then( (content) => {
+                let data = "data:application/zip;base64," + content;
+                let link = document.createElement('a') ;
+                link.setAttribute('href', encodeURI(data) ) ;
+                link.setAttribute('download', this.filename + ".zip") ;
+                link.click() ;
+            } ) ;
+        }
+    } ;
+
+    env.saveAndReload = new SaveAndReload() ;
+
+    let initSolution = source('initDomain') ;
+
+/*------------------------------------------------------------------------
+ * Editors 
+ *------------------------------------------------------------------------
+ */
+    env.editor = new Abubu.Editor({
+        sources : { 
+            initializeDomain : {
+                source : initSolution ,
+                solvers : [ env.initDomain ] ,
+                title : [ 'Domain Definition Shader' ] ,
+                filename : 'domainDefinition.frag' ,
+                callback : ()=> { 
+                    env.initDomain.render() ;
+                    env.zeroFluxDirections.render() ;
+                } 
+            } ,
+            initialCondition : {
+                source : source('initSolution' ) ,
+                solvers : [ env.finit , env.sinit ] ,
+                title : 'Initial Condition Shader' ,
+                filename : 'initCondition.frag',
+            } ,
+            computeTimeStep : {
+                source : source( 'computeTimeStep' ) ,
+                solvers : [ env.fcomp, env.scomp ] ,
+                title : 'Time Stepping Shader' ,
+                filename : 'computeTimeStep.frag', 
+            } ,
+            clickSolver : { 
+                source : source( 'click' ) ,
+                title  : 'Click Shader' ,
+                filename : 'click.frag', 
+                solvers : [ env.clickSolver ],
+            }
+        } ,
+        id : 'editor',
+        active : 'computeTimeStep' ,
+    } ) ;
+    
+    env.toggleEditor = function(){
+        $("#editorSection").fadeToggle(300)
+    } ;
+
 /*------------------------------------------------------------------------
  * initialize 
  *------------------------------------------------------------------------
@@ -1016,6 +1238,7 @@ function loadWebGL(){
         env.sinit.render() ;
         env.zeroFluxDirections.render() ;
         env.plot2d.initialize() ;
+        env.plot.init(0) ;
         env.time = 0 ;
     }
     env.initialize() ;
@@ -1037,6 +1260,7 @@ function loadWebGL(){
                 env.fcomp.render() ;
                 env.scomp.render() ;
                 env.time += env.dt*2. ;
+                env.vsgn.update(env.time) ;
             }
         }
         env.display();
@@ -1095,31 +1319,48 @@ function createGUI(){
             } ) ;
     addToGui( p1.model, env, env.allFloats , [env.fcomp, env.scomp] ) ;
 
-    // pacemaker .........................................................
-    p1.pacemaker = p1.addFolder('Pacemaker' ) ;    
 
     // clicker ...........................................................
     p1.clicker = p1.addFolder('Mouse Click Settings' ) ;
     p1.clicker.add( env.clicker, 'type', env.clicker.types ) ;
     p1.clicker.add( env.clicker, 'radius' ).step(0.001).min(0) ;
 
+    // pacemaker .........................................................
+    p1.pacemaker = p1.addFolder('Pacemaker' ) ;    
+    addToGui( p1.pacemaker, env, [...env.pacemakerFloats,...env.pacemakerBools], [env.fcomp, env.scomp] ) ;
+    
     // display options ...................................................
     p1.display = p1.addFolder('Visualization options') ;
+    p1.display.add( env.plot2d , 'colormap', env.plot2d.colormapList ) ;
+    p1.display.add( env.plot2d , 'colorbar' ) ;
+    p1.display.add( env.plot2d , 'probeVisible' ).onChange(()=>{env.plot2d.init() })  ;
+    p1.display.add( env, 'probePositionX' ) ;
+    p1.display.add( env, 'probePositionY' ) ;
+    p1.display.add( env.plot, 'timeWindow') ;
 
     // source code editos ................................................
     p1.source  = p1.addFolder('Edit/Save/Load Source Code') ;
-
-    // simulation ........................................................
-    p1.sim = p1.addFolder('Simulation'  ) ;
-    p1.sim.add( env, 'time' ).listen() ;
-    p1.sim.add( env, 'skip'             ).min(1).step(1) ;
-    p1.sim.add( env, 'initialize'       ).name('Initialize Simulation');
-    p1.sim.add( env, 'solveOrPause'     ).name('Start/Pause simulation') ;
-
-    p1.sim.open() ;
+    p1.source.add( env , 'toggleEditor').name('Show/Hide Editor' ) ;
+    p1.source.add( env.editor , 'title', env.editor.titles ).name('Edit source').onChange( ()=>{ p1.updateDisplay() ;} ) ;
+    p1.source.add( env.editor , 'filename').name('Filename') ;
+    p1.source.add( env.editor , 'save' ).name('Save to file') ;
+    p1.source.add( env.editor , 'load' ).name('Load from file') ;
     
     // save and load .....................................................
     p1.save = p1.addFolder('Save and Reload Simulation') ;
+    p1.save.add(env.saveAndReload , 'comments' ) ;
+    p1.save.add(env.saveAndReload , 'filename' ) ;
+    p1.save.add(env.saveAndReload , 'save' ) ;
+    p1.save.add(env.saveAndReload,  'reload' ) ;
+
+    // simulation ........................................................
+    //p1.sim = p1.addFolder('Simulation'  ) ;
+    p1.add( env, 'time' ).listen() ;
+    p1.add( env, 'skip'             ).min(1).step(1) ;
+    p1.add( env, 'initialize'       ).name('Initialize Simulation');
+    p1.add( env, 'solveOrPause'     ).name('Start/Pause simulation') ;
+
+    //p1.sim.open() ;
 
     return ;
 }
