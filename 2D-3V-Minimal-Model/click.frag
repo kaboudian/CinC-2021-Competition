@@ -33,7 +33,7 @@ void main(){
            vlt = 1. ;
         }else{
             domain = adding ? vec4(0) : vec4(1) ;
-            if (!adding){
+            if (!adding){ // removing obstacles?
                 vlt = 0. ;
                 fig = 1. ;
                 sig = 0.4 ;

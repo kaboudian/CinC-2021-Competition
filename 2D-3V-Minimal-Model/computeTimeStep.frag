@@ -20,6 +20,11 @@ uniform float   tau_pv, tau_v1, tau_v2, tau_pw, tau_mw, tau_d, tau_0,
                 tau_r,  tau_si, K,      V_sic,  V_c,    V_v ,  C_si ;
 
 uniform float   dt, lx, diffCoef, C_m ;
+uniform float   pacemakerPositionX ;
+uniform float   pacemakerPositionY ;
+uniform float   pacemakerPeriod ;
+uniform float   pacemakerRadius ;
+uniform bool    pacemakerActive ;
 
 uniform sampler2D   icolor0 ;
 
@@ -110,6 +115,15 @@ void main(){
 
     // update solution time ..............................................
     time += dt ;
+
+    if ( time > pacemakerPeriod ){
+        time = 0. ;
+        
+        if ( length(vec2(pacemakerPositionX,pacemakerPositionY)
+                    - cc )< pacemakerRadius && pacemakerActive ){
+            vlt = 1. ;
+        }
+    }
 
     // output colors .....................................................
     ocolor0 = vec4(color0) ;

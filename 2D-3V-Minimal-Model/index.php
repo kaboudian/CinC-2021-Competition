@@ -25,35 +25,41 @@
         src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js">
     </script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
+
 <style>
 <?php
   echo file_get_contents( __dir__ . "/../abubu_app.css" ) ;
 ?>
 
 div.relative {
-  position: relative;
-  height: 512px;
-  border: 1px solid black;
-  width:100% ;
+    position: relative;
+    width:100% ;
+    min-height : 600px ;
+    max-height : 100% ;
+    max-width: 1024px
 } 
 
 div.editor {
-  position : absolute;
-  top: 0px;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  width:100%;
+    position    : absolute ;
+    margin-left : 20px ;
+    width       : 90%;
+    height      : 100% ;
+    border      : 3px solid grey;
+    border-radius: 10px ;
 }
+
 #loading { 
     position : fixed ;
     bottom : 20px ;
     left : 10px ;
 }
+
 #loadProgress {
     width : 300px ;
     background-color: #ddd ;
 }
+
 #loadBar {
     width : 0% ;
     height : 20px ;
@@ -85,26 +91,10 @@ div.editor {
         </tr>
     </table>
     
-
-    <table style='width:100%' id=editors>
-        <tr id='compEditors' style='display:none'>
-            <td id='ecomp'> 
-                <h2>comp editor</h2>
-                <div class=relative id=compEditorContainer>
-                    <div class=editor id='compEditor'></div>
-                </div>
-            </td>
-        </tr>
-
-        <tr  id='initEditors' style='display:none'>
-            <td id='einit'> 
-                <h2>init editor</h2>
-                <div class=relative id=initEditorContainer>
-                    <div class=editor id='initEditor'></div>
-                </div>
-            </td>
-         </tr>
-    </table>
+    <div class='relative' id='editorSection' style='display:none'>
+        <h2>Source code editor</h2>
+        <div class='editor' id='editor'></div>
+    </div>
     
 <!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
 <!-- All shaders included here (codes written in GLSL)                 -->

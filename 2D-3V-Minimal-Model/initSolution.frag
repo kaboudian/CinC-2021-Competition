@@ -26,6 +26,7 @@ void main(){
     vlt = 0. ;
     fig = 1. ;
     sig = 0.4 ;
+    time = MAX_TIME ;
 
     ocolor0 = vec4(color0) ;
     return ;

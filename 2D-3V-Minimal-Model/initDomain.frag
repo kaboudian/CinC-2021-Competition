@@ -23,7 +23,8 @@ layout (location=1) out vec4 domain1 ;
 void main(){
     vec2 c = vec2(0.5) ;
     float d = length(cc-c) ;
-    vec4 domain = ( d >0.1 && d<0.4 ) ? vec4(1.) : vec4(0.) ;
+
+    vec4 domain = vec4(1.) ;
 
     domain0 = domain ;
     domain1 = domain ;
