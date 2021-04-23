@@ -74,7 +74,7 @@ function loadWebGL(){
  */
     env.fcolors = [] ;
     env.scolors = [] ;
-    for(var i=0; i<11; i++){
+    for(let i=0; i<11; i++){
         env['fcolor'+i] = new Abubu.Float32Texture( 
                 env.width, env.height, { pairable : true } ) ;
         env['scolor'+i] = new Abubu.Float32Texture( 
@@ -172,7 +172,7 @@ function loadWebGL(){
         'SGKs'     , 'SGK1' ,       'SGNaCa',       'SGNaK'    , 
         'SGKb'     , 'SJrel' ,      'SJup',         'SCMDN' ] ;
 
-    env.cellType = 2 ; // default is endocardial cells
+    env._cellType = 2 ; // default is endocardial cells
 
 
 
@@ -205,14 +205,100 @@ function loadWebGL(){
         ...env.currentMultipliers,  ...env.timeMultipliers,
         ...env.scalingFactors ] ;
 
-    // pacemaker .........................................................
-    env.pacemakerPeriod = 150 ;
-    env.pacemakerPositionX = 0.2 ;
-    env.pacemakerPositionY = 0.1 ;
-    env.pacemakerRadius = 0.03 ;
-    env.pacemakerActive = false ;
+    // Cells .............................................................
+    class Sets{
+        constructor(no){
+            this.floats = [ 
+                'SGNalate', 'SGto'    ,  'SPCa'    ,  'SGKr'    , 
+                'SGKs'    , 'SGK1'    , 'SGNaCa'  ,   'SGNaK'   , 
+                'SGKb'    , 'SJrel'   , 'SJup'    , 'SCMDN'   , 
+            ] ;
+            this.list = [ 
+                    'Mid-Myocardium','Epicardium', 'Endocardium', ] ;
+            this.number = no ;
 
-    env.pacemakerFloats = [ 'pacemakerPeriod', 'pacemakerPositionX','pacemakerPositionY', 'pacemakerRadius' ] ;
+        } // end of constructor
+
+        get number(){
+            return this._no ;
+        }
+        set number(no){
+            this._no = no ;
+            switch (this.number){
+                case 0: // Mid-Myocardium
+                    this._value = [
+                        1.0 , 4.0 , 2.5 , 0.8 , 1.0 , 1.3 , 
+                        1.5 , 0.7 , 1.0 , 1.7 , 1.0 , 1.0 ,
+                    ] ;
+                    break ;
+                case 1: // Epicardium
+                    this._value = [ 
+                        0.6 , 4.0 , 1.2 , 1.3 , 1.4 , 1.2 ,
+                        1.1 , 0.9 , 0.6 , 1.0 , 1.3 , 1.3 ,
+                    ] ;
+                    break ;
+                case 2: // Endocardium
+                    this._value = [
+                        1.0 , 1.0 , 1.0 , 1.0 , 1.0 , 1.0 ,
+                        1.0 , 1.0 , 1.0 , 1.0 , 1.0 , 1.0 ,
+                    ] ;
+                    break ;
+            } // end of switch statement
+            for(let i in this.floats){
+                let name  = this.floats[i] ;
+                env[name] = this._value[i] ;
+            }
+        }// end of set number
+
+        get name(){
+            return this.list[this.number] ;
+        }
+        set name(n){
+            for(let i=0; i < this.list.length; i++){
+                if(this.list[i] == n){
+                    this.number = i ;
+                }
+            }
+        }
+        updateSolvers(){
+            for(let name of this.floats){
+                env.fcomp1.uniforms[name].value = env[name] ;
+                env.scomp1.uniforms[name].value = env[name] ;
+                env.fcomp2.uniforms[name].value = env[name] ;
+                env.scomp2.uniforms[name].value = env[name] ;
+            }
+            env.cellType = this.number ;
+        }
+    } ;
+ 
+    env.sets = new Sets(2) ;
+
+    // celltype ..........................................................
+    Object.defineProperty( env, 'cellType' , {
+        get : ()=>{
+            return  env._cellType ;
+        } ,
+        set : (nv) =>{
+            env._cellType = nv ;
+            env.sets.number = nv ;
+            env.fcomp1.uniforms.cellType.value = nv ;
+            env.scomp1.uniforms.cellType.value = nv ;
+            env.fcomp2.uniforms.cellType.value = nv ;
+            env.scomp2.uniforms.cellType.value = nv ;
+        } 
+    } ) ;
+
+    // pacemaker .........................................................
+    env.pacemakerPeriod     = 500 ;
+    env.pacemakerPositionX  = 0.2 ;
+    env.pacemakerPositionY  = 0.1 ;
+    env.pacemakerRadius     = 0.03 ;
+    env.pacemakerActive     = false ;
+
+    env.pacemakerFloats     = [ 
+        'pacemakerPeriod', 
+        'pacemakerPositionX','pacemakerPositionY', 
+        'pacemakerRadius' ] ;
     env.pacemakerBools = [ 'pacemakerActive' ] ;
 
     env.compFloats.push(...env.pacemakerFloats ) ;
@@ -270,6 +356,7 @@ function loadWebGL(){
  * marching steps 
  *------------------------------------------------------------------------
  */
+    
     // comp1 solvers .....................................................
     env.fcomp1 = new Abubu.Solver({
         fragmentShader : source('comp1') ,
@@ -309,71 +396,84 @@ function loadWebGL(){
  * click to excite 
  *------------------------------------------------------------------------
  */
-    var click = new Abubu.Solver({
+    class Clicker{
+        constructor(){
+            this._radius = 0.05 ;
+            this.types = [ 
+                'Pace tissue', 
+                'Remove obstacles' , 'Add obstacles' ] ;
+            this.no = 0 ;
+        }
+
+        get type(){
+            return this.types[this.no] ;
+        }
+        
+        get radius(){
+            return this._radius ;
+        }
+        
+        set radius(nv){
+            this._radius = nv ;
+            env.clickSolver.uniforms.radius.value = nv ;
+        }
+
+        set type(nv){
+            for(let i=0 ; i<this.types.length; i++){
+                if(this.types[i] == nv){
+                    this.no = i ;
+                }
+            }
+            switch (this.no){
+                case 0 :
+                    env.clickSolver.uniforms.adding.value = false ;
+                    env.clickSolver.uniforms.pacing.value = true ;
+                    break ;
+                case 1 : 
+                    env.clickSolver.uniforms.adding.value = false ;
+                    env.clickSolver.uniforms.pacing.value = false ;
+                    break ;
+                case 2 : 
+                    env.clickSolver.uniforms.adding.value = true ;
+                    env.clickSolver.uniforms.pacing.value = false ;
+                    break ;
+            }
+        }
+    }
+
+    env.clicker = new Clicker() ;
+
+    env.clickSolver = new Abubu.Solver({
         fragmentShader : source( 'click' ) ,
         uniforms : {
-            inTexture       : { type : 't', value  : env.fcolor4    } ,
-            clickRadius     : { type : 'f', value  : 0.1            } ,
-            clickPosition   : { type : 'v2', value : [0.5,0.5]      } ,
+            idomain : { type : 't', value : env.fdomain         } ,
+            icolor4 : { type : 't', value : env.fcolor4         } ,
+            radius  : { type : 'f', value : env.clicker.radius  } ,
+            clickPosition 
+                    : { type : 'v2',value : [0,0]               } ,
+            adding  : { type : 'b', value : false               } ,
+            pacing  : { type : 'b', value : true                } ,
         } ,
         targets : {
-            ocolor : { location : 0 , target : env.scolor1 } ,
+            odomain : { location : 0 , target : env.sdomain } ,
+            ocolor4 : { location : 1, target : env.scolor4 } ,
         }
     } ) ;
+   
+    env.domCopy = new Abubu.Copy( env.sdomain, env.fdomain ) ;
+    env.colCopy = new Abubu.Copy( env.scolor4, env.fcolor4 ) ;
     
-    var clickCopy = new Abubu.Copy( env.scolor1, env.fcolor4 ) ;
-    
-    var mouseDrag_1 = new Abubu.MouseListener({
+    let mouseDrag_1 = new Abubu.MouseListener({
         canvas : document.getElementById('canvas_1') ,
         event : 'drag' ,
-        callback : function(e){
-            click.uniforms.clickPosition.value = e.position ;
-            click.render() ;
-            clickCopy.render() ;
-        }
+        callback : (e)=>{
+            env.clickSolver.uniforms.clickPosition.value = e.position ;
+            env.clickSolver.render() ;
+            env.domCopy.render() ;
+            env.colCopy.render() ;
+            env.zeroFluxDirections.render() ;
+        } 
     } ) ; 
-
-    var mouseDrag_2 = new Abubu.MouseListener({
-        canvas : document.getElementById('canvas_2') ,
-        event : 'drag' ,
-        callback : function(e){
-            click.uniforms.clickPosition.value = e.position ;
-            click.render() ;
-            clickCopy.render() ;
-        }
-    } ) ; 
-
-/*------------------------------------------------------------------------
- * shift-click to set probe position 
- *------------------------------------------------------------------------
- */
-    var setProbe_1 = new Abubu.MouseListener({
-        canvas : document.getElementById('canvas_1') ,
-        event  : 'click' ,
-        shift  : true ,
-        callback : function(e){
-            env.pplot.probePosition = e.position ;
-            env.pplot.init() ;
-            env.vplot.setProbePosition(e.position) ;
-            env.splot.setProbePosition(e.position) ;
-            env.splot.init() ;
-            env.vplot.init() ;
-        }
-    } ) ;
-
-    var setProbe_2 = new Abubu.MouseListener({
-        canvas : document.getElementById('canvas_2') ,
-        event  : 'click' ,
-        shift  : true ,
-        callback : function(e){
-            env.pplot.probePosition = e.position ;
-            env.pplot.init() ;
-            env.vplot.setProbePosition(e.position) ;
-            env.splot.setProbePosition(e.position) ;
-            env.splot.init() ;
-            env.vplot.init() ;
-        }
-    } ) ;
 
 /*------------------------------------------------------------------------
  * Editors 
@@ -403,7 +503,6 @@ function loadWebGL(){
                 title : 'IC Shader #2' ,
                 filename : 'init1.frag',
             } ,
-
             comp1 : {
                 source : source( 'comp1' ) ,
                 solvers : [ env.fcomp1, env.scomp1 ] ,
@@ -416,7 +515,6 @@ function loadWebGL(){
                 title : 'Compute Shader #2' ,
                 filename : 'comp2.frag', 
             } ,
-
             clickSolver : { 
                 source : source( 'click' ) ,
                 title  : 'Click Shader' ,
@@ -431,92 +529,99 @@ function loadWebGL(){
     env.toggleEditor = function(){
         $("#editorSection").fadeToggle(300)
     } ;
-
 /*------------------------------------------------------------------------
- * save and load file 
+ * save and load 
  *------------------------------------------------------------------------
  */
+    class SaveAndReload{
+        constructor(opt){
+            this.jsonObject = {}  ;
+            this.filename = opt?.filename ?? 'ovvr-save' ;
+            this.comments = opt?.comments ?? '' ;
 
-    // save file .........................................................
-    env.csvFileName = 'colorsSets_0_10.csv' ;
-    env.saveCsvFile = function(){
-        var link = document.createElement('a') ;
-        var data = "data:text;charset=utf-8," +
-            env.width + ',' + 
-            env.height ;
-        var width   = env.width ;
-        var height = env.height ;
-        var fvals = {} ;
-        for(let i=0;i<11; i++){
-            let color = "fcolor"+i ;
-            fvals[color] = env[color].value ;
-        }
+            this.loader = document.createElement( 'input' ) ;
+            this.loader.setAttribute( 'type', 'file' ) ;
 
-        for(var i=0 ; i<(width*height) ; i++){
-            var indx = i*4 ;
-            let rows = "" ;
-            for( let j=0; j<11; j++){
-                name = "fcolor"+j ;
-                rows += ',' + 
-                fvals[name][indx  ].toExponential()+ ',' +
-                fvals[name][indx+1].toExponential()+ ',' +
-                fvals[name][indx+2].toExponential()+ ',' +
-                fvals[name][indx+3].toExponential() ;
-            }
-            data += rows ;
-        }
-        
-        var csv = encodeURI( data ) ;
-        link.setAttribute( 'href', csv ) ;
-        link.setAttribute( 'download', env.csvFileName ) ;
-        link.click() ;
-    }
-
-    // load file .........................................................
-    env.loadCsvFile = document.createElement('input') ;
-    env.loadCsvFile.setAttribute('type', 'file') ;
-    env.loadCsvFile.onchange = function(){
-        /* check if a no file was selected */
-        if ( !env.loadCsvFile.files[0] ){        
-            return ;
-        } ;
-    
-        var file = env.loadCsvFile.files[0] ;
-        var reader = new FileReader() ;
-        reader.readAsText(file) ;
-    
-        // only the when the file is loaded it can be analyzed
-        reader.onload = function(event){
-            var result  = event.target.result ;
-            var data = result.split(',') ;
-    
-            var width = parseInt(data[0]) ;
-            var height = parseInt(data[1]) ;
-    
-            var tabs = [] ;
-            for(var i = 0 ; i<11 ; i++){
-                tabs.push( new Float32Array(width*height*4) ) ;
-            }
-            
-            var p = 2 ;
-            var indx ;
-
-            for (var i=0 ; i< (width*height) ; i++){ // modify accordingly
-                indx = i*4 ;
-                for(var j=0 ; j<11 ; j++){
-                    tabs[j][ indx   ] = parseFloat( data[p++]) ;
-                    tabs[j][ indx+1 ] = parseFloat( data[p++]) ;
-                    tabs[j][ indx+2 ] = parseFloat( data[p++]) ;
-                    tabs[j][ indx+3 ] = parseFloat( data[p++]) ;
+            // read the chose files
+            this.loader.onchange = (e)=>{
+                if( !this.loader.files[0] ){
+                    console.log('No file selected') ;
                 }
-             }
 
-            for( var j=0 ; j<11; j++){
-                env.fcolors[j].data = tabs[j] ;
-                env.scolors[j].data = tabs[j] ;
+                let file = this.loader.files[0] ;
+                let reader = new FileReader() ;
+                reader.readAsText(file) ;
+
+                reader.onload = (e) =>{
+                    let result  = event.target.result ;
+                    let json = JSON.parse(result) ;
+                    // read floats from json
+                    for(let name of env.compFloats)
+                        env[name] = json[name] ;
+                    env.time = json.time ;
+                    
+                    // read ints from json
+                    for(let name of env.compInts){
+                        console.log(name, json[name] );
+                        env[name] = json[name] ;
+                    }
+
+                    this.comments = json.comments ;
+
+                    env.GUI.updateDisplay() ;
+
+                    // update textures from json
+                    for(let i=0 ; i< 11 ; i++){
+                        env['fcolor'+i].data 
+                            = new Float32Array( json['color'+i] ) ; 
+                        env['scolor'+i].data 
+                            = new Float32Array( json['color'+i] ) ; 
+                    }
+                    env.fdomain.data = new Float32Array( json.domain ) ;
+                    env.sdomain.data = new Float32Array( json.domain ) ;
+
+                    // recalculate zero flux directions
+                    env.zeroFluxDirections.render() ;
+                }
             }
+        } /* End of constructor */
+
+        reload(){
+            this.loader.click() ;
         }
-    }
+
+        save(){
+            this.jsonObject.comments = this.comments ;
+
+            // add all floats to the jsonObject ..........................
+            for(let name of env.compFloats)
+                this.jsonObject[name] = env[name] ;
+            this.jsonObject.time = env.time ;
+
+            // add all integers to the jsonObject ........................
+            for(let name of env.compInts)
+                this.jsonObject[name] = env[name] ;
+        
+            // add texture values to the json ............................
+            this.jsonObject.domain  = Array.from(env.fdomain.value) ;
+            
+            for(let i=0; i<11 ; i++){
+                this.jsonObject['color'+i] = 
+                    Array.from(env['fcolor'+i].value) ;
+            }
+
+            let json = "data:text;charset=utf-8," + 
+                JSON.stringify(this.jsonObject) ;
+            let data = encodeURI( json ) ;
+            
+            let link = document.createElement('a') ;
+            link.setAttribute( 'href', data ) ;
+            link.setAttribute( 'download', this.filename +'.json') ;
+            link.click() ;
+        }
+    } ;
+
+    env.saveAndReload = new SaveAndReload() ;
     
 /*------------------------------------------------------------------------
  * Postprocessing 
@@ -528,7 +633,7 @@ function loadWebGL(){
         phaseField  : env.domain , 
         channel     : 'r' ,
         minValue    : -90 ,
-        maxValue    : 30 ,
+        maxValue    : 50 ,
         colorbar    : true ,
         probeVisible: true ,
         canvas      : document.getElementById('canvas_1') ,
@@ -540,7 +645,7 @@ function loadWebGL(){
         noPltPoints : 1024, // number of sample points
         grid : 'on', 
         nx   : 10 , // number of division in x 
-        ny   : 12 , // ... in y 
+        ny   : 7 , // ... in y 
 
         xticks : {  mode : 'auto', unit : 'ms', font : '11pt Times' } ,
         yticks : {  mode : 'auto', unit : 'mv' , 
@@ -563,9 +668,9 @@ function loadWebGL(){
     env.vsgn = env.splot.addSignal( env.fcolor4, {
             channel : 'r',
             minValue : -90,
-            maxValue : 30 ,
-            restValue : -83.0 ,
-            color : [ 0.,.4,0.0 ],
+            maxValue : 50 ,
+            restValue : -87.0 ,
+            color : [ 1.,0.,0.0 ],
             visible : true ,
             timewindow : 1000 , 
             probePosition : [0.5,0.5] 
@@ -584,6 +689,29 @@ function loadWebGL(){
         env.splot.render() ;
     }
 
+    // probe -------------------------------------------------------------
+    env.probePosition = env.vplot.probePosition ;
+    Object.defineProperty( env, 'probePositionX' , {
+        get : ()=>{
+            return  env.probePosition[0] ;
+        } ,
+        set : (nv) =>{
+            env.probePosition[0] = nv ;
+            env.vplot.probePosition = env.probePosition ;
+            env.splot.probePosition = env.probePosition ;
+        } 
+    } ) ;
+    Object.defineProperty( env, 'probePositionY' , {
+        get : ()=>{
+            return  env.probePosition[1] ;
+        } ,
+        set : (nv) =>{
+            env.probePosition[1] = nv ;
+            env.vplot.probePosition = env.probePosition ;
+            env.splot.probePosition = env.probePosition ;
+        } 
+    } ) ;
+
 /*------------------------------------------------------------------------
  * Run sequence
  *------------------------------------------------------------------------
@@ -592,7 +720,7 @@ function loadWebGL(){
     env.running = false ;
     env.run = function(){
         if (env.running){
-            for(var i = 0 ; i<env.skip ; i++){
+            for(let i = 0 ; i<env.skip ; i++){
                 env.march() ;
                 env.updateSignals() ; 
             }
@@ -618,17 +746,13 @@ function addToGui(
         solverList      // array of solvers that need to be update upon 
                         // change of a parameter through gui interactions
     ){
-    var elements = {} ;
-    for(let i in paramList){
-        var param = paramList[i] ;
-        elements[param] = guiElemenent.add(obj, param )  ;
-        elements[param].onChange(function(){
-            console.log(this) ;
-            Abubu.setUniformInSolvers( 
-                    this.property , // this refers to the GUI element 
-                    this.object[this.property] , 
-                    solverList ) ;
-        } ) ;
+    let elements = {} ;
+    for(let param of paramList){
+        elements[param] = 
+            guiElemenent.add(obj, param ).onChange( ()=> {
+                Abubu.setUniformInSolvers( 
+                    param, obj[param], solverList ) ;
+            } ) ;
     }
     return elements ;
 }
@@ -638,28 +762,51 @@ function addToGui(
  *========================================================================
  */ 
 function createGui(){
-    var gui = new Abubu.Gui() ;     /*  create a graphical user 
-                                        interface               */
-    var panel = gui.addPanel({width:400}) ;    /*  add a panel to the GUI  */
-    let p1 = panel ;
+    let gui = new Abubu.Gui() ;             /*  create a graphical user 
+                                                interface               */
+    env.GUI = gui ;
+    let p1 = gui.addPanel({width:400}) ; /*  add a panel to the GUI  */
 
     // model parameters ..................................................
-    var mdl = panel.addFolder("Model Parameters") ;
+    let mdl = p1.addFolder("Model Parameters") ;
+    mdl
+        .add( env.sets, 'name', env.sets.list )
+        .name('Cell Type')
+        .onChange(
+            () =>{
+                mdl.updateDisplay() ;
+                env.sets.updateSolvers() ;
+            } ) ;
+
 
     addToGui(mdl, env,env.modelFloats , env.comps) ;
 
-    var crnt = mdl.addFolder("Current Multipliers") ;
+    let crnt = mdl.addFolder("Current Multipliers") ;
     addToGui(crnt, env,env.currentMultipliers , env.comps) ;
     
-    var tcst = mdl.addFolder("Time Constant Multipliers") ;
+    let tcst = mdl.addFolder("Time Constant Multipliers") ;
     addToGui(tcst, env,env.timeMultipliers , env.comps) ;
 
-    var scl  = mdl.addFolder("Scaling Factors") ;
+    let scl  = mdl.addFolder("Scaling Factors") ;
     addToGui( scl,env, env.scalingFactors, env.comps ) ;
+    //
+    // clicker ...........................................................
+    p1.clicker = p1.addFolder('Mouse Click Settings' ) ;
+    p1.clicker.add( env.clicker, 'type', env.clicker.types ) ;
+    p1.clicker.add( env.clicker, 'radius' ).step(0.001).min(0) ;
 
     // pacemaker .........................................................
     p1.pacemaker = p1.addFolder('Pacemaker' ) ;    
     addToGui( p1.pacemaker, env, [...env.pacemakerFloats,...env.pacemakerBools], env.comps ) ;
+
+    // display options ...................................................
+    p1.display = p1.addFolder('Visualization options') ;
+    p1.display.add( env.vplot , 'colormap', env.vplot.colormapList ) ;
+    p1.display.add( env.vplot , 'colorbar' ) ;
+    p1.display.add( env.vplot , 'probeVisible' ).onChange(()=>{env.vplot.init() })  ;
+    p1.display.add( env, 'probePositionX' ) ;
+    p1.display.add( env, 'probePositionY' ) ;
+    p1.display.add( env.splot, 'timeWindow') ;
 
     // source code editos ................................................
     p1.source  = p1.addFolder('Edit/Save/Load Source Code') ;
@@ -669,14 +816,15 @@ function createGui(){
     p1.source.add( env.editor , 'save' ).name('Save to file') ;
     p1.source.add( env.editor , 'load' ).name('Load from file') ;
 
-    // csv files ---------------------------------------------------------
-    var csv = panel.addFolder('Save and Load CSV') ;
-    csv.add(env,'csvFileName' ) ;
-    csv.add(env,'saveCsvFile' ) ;
-    csv.add(env.loadCsvFile , 'click').name('loadCsvFile') ;
+    // save and load .....................................................
+    p1.save = p1.addFolder('Save and Reload Simulation') ;
+    p1.save.add(env.saveAndReload , 'comments' ) ;
+    p1.save.add(env.saveAndReload , 'filename' ) ;
+    p1.save.add(env.saveAndReload , 'save' ) ;
+    p1.save.add(env.saveAndReload,  'reload' ) ;
 
     // execution .........................................................
-    var exe = panel.addFolder('Execution') ;
+    let exe = p1.addFolder('Execution') ;
     exe.add(env,'time').listen() ;
     exe.add(env,'skip') ;
     exe.add(env,'initialize') ;
