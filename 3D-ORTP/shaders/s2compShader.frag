@@ -23,7 +23,7 @@ uniform float       ds_x, ds_y ;
 uniform float       diffCoef, C_m ;
 uniform float       minVlt, maxVlt ;
 
-#define lx 8.0 
+#define lx 10.0 
 uniform sampler2D   icolor0 ;
 uniform int     mx, my ;    /* number of z-layers in S and T 
                                directions  of the textures */

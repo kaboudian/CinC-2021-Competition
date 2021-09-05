@@ -14,7 +14,7 @@
 <!-- body of the html page                                             -->
 <!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
 <body>
-    <h1>3D 3-Variable Minimal Model</h1>
+    <h1>3D ORTP Model</h1>
     <!--
     <div id='chooser'>
         <h2>Select the JSON file containing the structure</h2>

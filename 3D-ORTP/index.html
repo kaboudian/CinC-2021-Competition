@@ -1,0 +1,3270 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3D ORTP Model</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+<script src='https://abubujs.org/libs/Abubu.latest.js' 
+        type='text/javascript'></script>
+<!-- editors and jQuery -->
+<script 
+src='https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.5/ace.js'  
+type="text/javascript" charset="utf-8">
+</script>
+<script 
+    src='https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.5/mode-glsl.js'>
+</script>
+<script 
+    src='https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.5/theme-tomorrow.js'>
+</script>
+<script
+    src='https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.5/keybinding-vim.js'>
+</script>
+<script 
+    src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js">
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
+
+
+<style>/* unvisited link */
+a:link {
+    	color: blue;
+}
+
+/* visited link */
+a:visited {
+    	color: blue;
+}
+
+/* mouse over link */
+a:hover {
+    	color: hotpink;
+}
+
+/* selected link */
+a:active {
+    	color: blue;
+}
+/*
+li{
+    	margin : 10px 6px ;
+} */
+
+body {
+	counter-reset: h1;
+}
+
+
+h1{
+        max-width: 1024px ;
+	text-align:left;
+	color: white;
+       	background-color: #00254c;
+       	padding-left: 20px ;
+       	padding-top: 10px ;
+       	padding-bottom: 10px ;
+       	border-radius: 10px;
+}
+
+h2 {
+        max-width: 1024px ;
+    	color: #00254c;
+    	background-color: #e5e5e5 ;
+    	padding-left: 20px ;
+    	padding-top: 2.5px ;
+    	padding-bottom: 2.5px ;
+
+    	border-radius: 10px;
+}
+
+h3 {
+        max-width: 1024px ;
+    	color: #00254c;
+    	background-color: #f0f0f0 ;
+    	padding-left: 20px ;
+    	padding-top: 2.5px ;
+    	padding-bottom: 2.5px ;
+    	border-radius: 10px;
+}
+
+h4 {
+        max-width: 1024px ;
+    	color: #00254c;
+    	background-color: #fafafa ;
+    	padding-left: 20px ;
+    	padding-top: 2.5px ;
+    	padding-bottom: 2.5px ;
+    	border-radius: 10px;
+}
+
+p{
+    max-width : 700px  ;
+    padding-left: 10px ;
+}
+canvas.clickable:hover{
+    cursor:pointer ;
+    cursor:hand ;
+}
+
+.footer{
+    position : fixed ; 
+    max-width: 1024px ;
+    border-radius:10px ;
+    left : 0px ;
+    width : 100% ;
+    background-color: #fafafa;
+    color:black ;
+    bottom: 0px ;
+    text-align : left ;
+    font: 'italic 12pt Times' ;
+}
+
+div.relative {
+    position: relative;
+    width:100% ;
+    min-height : 600px ;
+    max-height : 100% ;
+    max-width: 1024px
+} 
+
+div.editor {
+    position    : absolute ;
+    margin-left : 20px ;
+    width       : 90%;
+    height      : 100% ;
+    border      : 3px solid grey;
+    border-radius: 10px ;
+}
+
+#loading { 
+    position : fixed ;
+    bottom : 20px ;
+    left : 10px ;
+}
+
+#loadProgress {
+    width : 300px ;
+    background-color: #ddd ;
+}
+
+#loadBar {
+    width : 0% ;
+    height : 20px ;
+    background-color: #4caf50 ;
+    border-radius: 3px ;
+}
+
+</style>
+</head>
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<!-- body of the html page                                             -->
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<body>
+    <h1>3D ORTP Model</h1>
+    <!--
+    <div id='chooser'>
+        <h2>Select the JSON file containing the structure</h2>
+        <p style='color:red'>Before you can proceed, you need to choose the structural
+        file!</p>
+       <input type='file' id='json_structure' accept='.json, .JSON'></input>
+    </div> -->
+
+    <table>
+        <tr>
+            <td>
+                <canvas id=canvas_1 width=512 height=512>
+                    Your browser doesn't support HTML5.0
+                </canvas>
+            </td>
+            <td>
+                <canvas id=canvas_2 width=512 height=512>
+                    Your browser doesn't support HTML5.0
+                </canvas>
+            </td>
+        </tr>
+    </table>
+    
+    <div class='relative' id='editorSection' style='display:none'>
+        <h2>Source code editor</h2>
+        <div class='editor' id='editor'></div>
+    </div>
+    
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<!-- All shaders included here (codes written in GLSL)                 -->
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<!-- ***************************************************************** -->
+<script id='vertShader' type='x-shader-vertex'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * vertShader   :   vertex shader
+ *
+ * PROGRAMMER   :   ABOUZAR KABOUDIAN
+ * DATE         :   Wed 19 Jul 2017 12:45:23 PM EDT
+ * PLACE        :   Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+precision highp int ;
+precision highp float ;
+precision highp sampler2D ;
+precision highp usampler2D ;
+
+
+/*------------------------------------------------------------------------
+ * "attribute"s in WebGL1 change to "in"s to a vertexShaders in WebGL2.
+ * It will receive data from a buffer
+ *------------------------------------------------------------------------
+ */
+in vec3 position;
+
+/*------------------------------------------------------------------------
+ * "varyings" in WebGL1 change to "out" variables in WebGL2 vertexShaders
+ *------------------------------------------------------------------------
+ */
+out vec2 pixPos ;
+out vec3 pixCrd ;
+
+/*========================================================================
+ * Main body of the vertexShader
+ *========================================================================
+ */
+void main() {
+    pixPos  = position.xy ;
+    pixCrd  = position.xyz ;
+    gl_Position = vec4(position.x*2.-1., position.y*2.-1.,0.,1.0);
+}
+</script><!-- end of vertShader shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='s1initShader' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * s1initShader :   mhji, haii, aiid, ffff, jffn, xxxx
+ *
+ * PROGRAMMER   :   ABOUZAR KABOUDIAN
+ * DATE         :   Wed 19 Jul 2017 12:31:30 PM EDT
+ * PLACE        :   Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+precision highp float;
+
+/*------------------------------------------------------------------------
+ * Interface variables 
+ *------------------------------------------------------------------------
+ */
+in vec2 pixPos ;
+
+/*------------------------------------------------------------------------
+ * outputs
+ *------------------------------------------------------------------------
+ */
+layout (location = 0 )  out vec4  aiidOut ;
+layout (location = 1 )  out vec4  ffffOut ;
+layout (location = 2 )  out vec4  jffnOut ;
+layout (location = 3 )  out vec4  xxxxOut ;
+
+/*========================================================================
+ * Main body of the shader
+ *========================================================================
+ */
+void main() {
+
+/*------------------------------------------------------------------------
+ * location 2 : aiid
+ *------------------------------------------------------------------------
+ */
+    aiidOut = vec4( 0.000515567 ,   /* aCaMK            */
+                    0.9999542 ,     /* iCaMKfast        */
+                    0.641861 ,      /* iCaMKslow        */
+                    2.43015e-9      /* d                */  ) ;
+
+/*------------------------------------------------------------------------
+ * location 3 : ffff
+ *------------------------------------------------------------------------
+ */
+    ffffOut = vec4( 1.0 ,           /* ffast            */
+                    0.910671 ,      /* fslow            */
+                    1.0 ,           /* fCafast          */
+                    0.99982         /* fCaslow          */  ) ;
+
+/*------------------------------------------------------------------------
+ * location 4 : jffn
+ *------------------------------------------------------------------------
+ */
+    jffnOut = vec4( 0.999977 ,      /* jCa              */
+                    1.0 ,           /* fCaMKfast        */
+                    1.0 ,           /* fCaCaMKfast      */  
+                    0.00267171      /* n                */ ) ;
+
+/*------------------------------------------------------------------------
+ * location 5 : xxxx
+ *------------------------------------------------------------------------
+ */
+    xxxxOut = vec4( 8.26608e-6 ,     /* xrfast          */
+                    0.453268 ,       /* xrslow          */
+                    0.270492 ,       /* xs1             */
+                    0.0001963        /* xs2             */  ) ;
+
+    return ;
+}
+</script><!-- end of s1initShader shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='s2initShader' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * s2initShader :   mhjj, jaii, vvxc, cccc, kknn
+ *
+ * PROGRAMMER   :   ABOUZAR KABOUDIAN
+ * DATE         :   Wed 19 Jul 2017 12:31:30 PM EDT
+ * PLACE        :   Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+precision highp float;
+
+/*------------------------------------------------------------------------
+ * Interface variables 
+ *------------------------------------------------------------------------
+ */
+in vec2 pixPos ;
+uniform float   minVlt, maxVlt ;
+
+/*------------------------------------------------------------------------
+ * outputs
+ *------------------------------------------------------------------------
+ */
+layout (location = 0 )  out vec4  mhjjOut ;
+layout (location = 1 )  out vec4  jaiiOut ;
+layout (location = 2 )  out vec4  vvxcOut ;
+layout (location = 3 )  out vec4  ccccOut ;
+layout (location = 4 )  out vec4  kknnOut ;
+
+/*========================================================================
+ * Main body of the shader
+ *========================================================================
+ */
+void main() {
+
+/*------------------------------------------------------------------------
+ * location 0 : mhji
+ *------------------------------------------------------------------------
+ */
+    mhjjOut = vec4( 9.8264e-04 ,    /* m                */
+                    0.8092 ,        /* h                */
+                    0.8092 ,        /* j                */
+                    2.53943e-5      /* JrelNP           */  ) ;
+
+/*------------------------------------------------------------------------
+ * location 1 : haii
+ *------------------------------------------------------------------------
+ */
+    jaiiOut = vec4( 3.17262e-7 ,    /* JrelCaMK         */
+                    0.00101185 ,    /* a                */
+                    0.999542 ,      /* ifast            */
+                    0.589579        /* iFlow            */  ) ;
+
+/*------------------------------------------------------------------------
+ * location 0 : vvxc
+ *------------------------------------------------------------------------
+ */
+    float   vlt = -87.84 ;
+    float   v   = ( vlt - minVlt )/(maxVlt - minVlt) ;
+
+    vvxcOut = vec4( vlt,        /* membrane potential   */ 
+                    v,          /* scaled potential     */
+                    0.996801 ,  /* xK1                  */
+                    0.0124065   /* CaMKtrap             */  ) ; 
+
+/*------------------------------------------------------------------------
+ * location 1 : cccc
+ *------------------------------------------------------------------------
+ */
+    ccccOut = vec4( 1.61 ,      /* Cansr                */
+                    1.56 ,      /* Cajsr                */
+                    8.43e-5 ,   /* Cass                 */
+                    8.54e-5     /* Cai                  */  ) ;
+
+/*------------------------------------------------------------------------
+ * location 2 : kknn
+ *------------------------------------------------------------------------
+ */
+    kknnOut = vec4( 143.79 ,    /* Kss                  */
+                    143.79 ,    /* Ki                   */
+                    7.23 ,      /* Nass                 */
+                    7.23        /* Nai                  */  ) ;
+              
+    return ;
+}
+</script><!-- end of s2initShader shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='s1compShader' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * s1compShader :   mhji, haii, aiid, ffff, jffn, xxxx
+ *
+ * PROGRAMMER   :   ABOUZAR KABOUDIAN
+ * DATE         :   Wed 26 Jul 2017 10:36:21 AM EDT
+ * PLACE        :   Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+precision highp float;
+precision highp int ;
+
+/*------------------------------------------------------------------------
+ * Interface variables 
+ *------------------------------------------------------------------------
+ */
+in vec2 pixPos ;
+
+uniform float       dt ;
+
+/* Input texture variables */
+uniform sampler2D   aiidIn ; 
+uniform sampler2D   ffffIn ; 
+uniform sampler2D   jffnIn ; 
+uniform sampler2D   xxxxIn ; 
+uniform sampler2D   mhjjIn ;
+uniform sampler2D   jaiiIn ;
+uniform sampler2D   vvxcIn ; 
+uniform sampler2D   ccccIn ; 
+uniform sampler2D   kknnIn ; 
+
+/* time factor multipliers */
+uniform float       Ct_m          ; 
+uniform float       Ct_h          ; 
+uniform float       Ct_j          ; 
+uniform float       Ct_hCaMKslow  ; 
+uniform float       Ct_hslow      ; 
+uniform float       Ct_mL         ; 
+uniform float       Ct_jCaMK      ; 
+uniform float       Ct_hL         ; 
+uniform float       Ct_hLCaMK     ; 
+uniform float       Ct_a          ; 
+uniform float       Ct_ifast      ; 
+uniform float       Ct_islow      ; 
+uniform float       Ct_aCaMK      ; 
+uniform float       Ct_iCaMKfast  ; 
+uniform float       Ct_iCaMKslow  ; 
+uniform float       Ct_d          ; 
+uniform float       Ct_ffast      ; 
+uniform float       Ct_fslow      ; 
+uniform float       Ct_fCafast    ; 
+uniform float       Ct_fCaslow    ; 
+uniform float       Ct_jCa        ; 
+uniform float       Ct_fCaMKfast  ; 
+uniform float       Ct_fCaCaMKfast; 
+uniform float       Ct_n          ; 
+uniform float       Ct_xrfast     ; 
+uniform float       Ct_xrslow     ; 
+uniform float       Ct_xs1        ; 
+uniform float       Ct_xs2        ; 
+uniform float       Ct_xk1        ; 
+uniform float       Ct_relNP      ; 
+uniform float       Ct_relCaMK    ; 
+uniform float       Ct_tr         ; 
+uniform float       Ct_diffCa     ; 
+uniform float       Ct_diffNa     ; 
+uniform float       Ct_diffK      ; 
+
+/* Scaling Factors          */
+uniform float       SGNalate ;  
+uniform float       SGto     ;  
+uniform float       SPCa     ;  
+uniform float       SGKr     ;  
+uniform float       SGKs     ;  
+uniform float       SGK1     ;  
+uniform float       SGNaCa   ;  
+uniform float       SGNaK    ;  
+uniform float       SGKb     ;  
+uniform float       SJrel    ;  
+uniform float       SJup     ;  
+uniform float       SCMDN    ;  
+
+/*------------------------------------------------------------------------
+ * outputs
+ *------------------------------------------------------------------------
+ */
+layout (location = 0 )  out vec4  aiidOut ;
+layout (location = 1 )  out vec4  ffffOut ;
+layout (location = 2 )  out vec4  jffnOut ;
+layout (location = 3 )  out vec4  xxxxOut ;
+
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * Main body of the shader
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+void main() {
+    vec4    vvxcVal = texture(vvxcIn, pixPos ) ;
+    vec2    v       = vec2( vvxcVal.g, 0.5 ) ;
+       float   V       = vvxcVal.r ;
+
+/*========================================================================
+ * aiid
+ *========================================================================
+ */
+    vec4    aiidVal = texture( aiidIn, pixPos   ) ;
+
+
+/*------------------------------------------------------------------------
+ * a_CaMK
+ *------------------------------------------------------------------------
+ */
+    float   aCaMKinf = 1./
+            (   1. +    exp(  -(V-24.34)/14.82 )           ) ;
+
+    float   ta       = 1.0515/
+            (   1./ (   1.2089*(1.+exp(-(V-18.41)/29.38))  ) +
+                3.5/(   1. + exp(  (V+100.)/29.38  )   )   ) ;
+
+    ta *= Ct_aCaMK ;
+
+    aiidVal.r = aCaMKinf + ( aiidVal.r - aCaMKinf)*exp(-dt/ta ) ;
+    
+/*------------------------------------------------------------------------
+ * i_CaMK,fast --- i_CaMK,slow
+ *------------------------------------------------------------------------
+ */
+    float   iCaMKinf = 1./
+            (   1. + exp(   (V+43.94)/5.711    )           ) ;
+
+    float   dCaMKdev = 1.354 + 1.0e-4/
+            (   exp(           (V-167.4)/15.89     ) +
+                exp(          -(V-12.23)/0.2145    )       ) ;
+
+    float   dCaMKrec = 1.0 - 0.5/
+            (   1. +    exp(   (V+70.)/20.0        )       ) ;
+
+    float   tifast   = 4.562 + 1./
+            (   0.3933*exp(-(V+100.)/100.  ) +
+                0.08004*exp((V+50.0)/16.59 )               ) ;
+
+
+    float   tislow   = 23.62 +
+            1./( 0.001416*exp(-(V+96.52)/59.05 )
+                +1.7808e-8*exp((V+114.1)/8.079 )           ) ;
+    float   tiCaMKfast = tifast*dCaMKdev*dCaMKrec*Ct_iCaMKfast ;
+    float   tiCaMKslow = tislow*dCaMKdev*dCaMKrec*Ct_iCaMKslow ;
+
+    aiidVal.g = iCaMKinf + ( aiidVal.g - iCaMKinf)*exp( -dt/tiCaMKfast ) ;
+    aiidVal.b = iCaMKinf + ( aiidVal.b - iCaMKinf)*exp( -dt/tiCaMKslow ) ;
+ 
+/*------------------------------------------------------------------------
+ * d
+ *------------------------------------------------------------------------
+ */
+    float   dinf = 1./
+            (   1. +    exp(   -(V+3.940)/4.230    )       ) ;
+
+    float   td   =  0.6 + 1./
+            (   exp(   -0.05*(V+6.0)               ) +
+                exp(    0.09*(V+14.0)              )       ) ;
+    td *= Ct_d ;
+
+    aiidVal.a = dinf + ( aiidVal.a - dinf )*exp( -dt/td ) ;
+
+/*-----------------------------------------------------------------------
+ * aiidOut
+ *-----------------------------------------------------------------------
+ */
+    aiidOut = aiidVal ;
+    
+/*========================================================================
+ * ffff
+ *========================================================================
+ */ 
+    vec4    ffffVal = texture( ffffIn, pixPos   ) ;
+
+/*------------------------------------------------------------------------
+ * f_fast --- f_slow
+ *------------------------------------------------------------------------
+ */
+    float   finf    =  1./
+            (   1. + exp(      (V+19.58)/3.696     )       ) ;
+
+    float   tffast  =  7.0 + 1./
+            (   0.0045*exp(   -(V+20.0)/10.0       ) +
+                0.0045*exp(    (V+20.0)/10.0       )       ) ;
+    tffast *= Ct_ffast ;
+
+    float   tfslow  = 1000.0 +
+                1./(    0.000035*exp(-(V+5.0)/4.0 ) +
+                        0.000035*exp( (V+5.0)/6.0 )        ) ;
+    tfslow *= Ct_fslow ;
+
+    ffffVal.r = finf + ( ffffVal.r - finf)*exp( -dt/tffast ) ;
+    ffffVal.g = finf + ( ffffVal.g - finf)*exp( -dt/tfslow ) ;
+
+/*------------------------------------------------------------------------
+ * f_Ca,fast --- f_Ca,slow
+ *------------------------------------------------------------------------
+ */
+    float   fCainf   = finf ;
+    float   tfCafast = 7.0 +
+                1./(    0.04*exp( -(V-4.0)/7.0)    +
+                        0.04*exp(  (V-4.0)/7.0)            ) ;
+    tfCafast *= Ct_fCafast ;
+
+    float   tfCaslow = 100.0 +
+                1./(    0.00012*exp( -V/3.0 ) +
+                        0.00012*exp(  V/7.0 )              ) ;
+    tfCaslow *= Ct_fCaslow ;
+
+    ffffVal.b = fCainf + ( ffffVal.b - fCainf)*exp( -dt/tfCafast ) ;
+    ffffVal.a = fCainf + ( ffffVal.a - fCainf)*exp( -dt/tfCaslow ) ;
+
+/*------------------------------------------------------------------------
+ * ffffOut
+ *------------------------------------------------------------------------
+ */ 
+    ffffOut = ffffVal ;
+
+/*========================================================================
+ * jffn
+ *========================================================================
+ */    
+    vec4    jffnVal = texture( jffnIn, pixPos   ) ;
+    vec4    ccccVal = texture( ccccIn, pixPos   ) ;
+
+/*------------------------------------------------------------------------
+ * j_Ca
+ *------------------------------------------------------------------------
+ */
+    float   jCainf  =  1./
+            (   1. + exp(      (V+19.58)/3.696     )       ) ;
+
+
+    float   tjCa    = 75.0*Ct_jCa ;
+    jffnVal.r = jCainf      + ( jffnVal.r - jCainf  )
+                            *exp( -dt/tjCa  ) ;
+
+/*------------------------------------------------------------------------
+ * j_CaMK,fast
+ *------------------------------------------------------------------------
+ */
+    float   fCaMKinf = jCainf ;
+
+    float   tfCaCMfast = 7.0 + 1./
+            (   0.0045*exp(   -(V+20.0)/10.0       ) +
+                0.0045*exp(    (V+20.0)/10.0       )       ) ;
+    tfCaCMfast *= 2.5*Ct_fCaMKfast ;
+    
+    jffnVal.g = fCaMKinf    + ( jffnVal.g - fCaMKinf                )
+                                            *exp( -dt/tfCaCMfast    ) ;
+
+/*------------------------------------------------------------------------
+ * j_Ca,CaMK,fast
+ *------------------------------------------------------------------------
+ */
+    float   fCaCaMKinf = jCainf ;
+
+    float   tfCaCaMKfast = 7.0 + 1./
+            (   0.0045*exp(   -(V+20.0)/10.0       ) +
+                0.0045*exp(    (V+20.0)/10.0       )       ) ;
+    tfCaCaMKfast *=  2.5*2.5*Ct_fCaCaMKfast ;
+
+    jffnVal.b = fCaCaMKinf  + ( jffnVal.b - fCaCaMKinf              )
+                                            *exp( -dt/tfCaCaMKfast  ) ;
+
+/*------------------------------------------------------------------------
+ * n
+ *------------------------------------------------------------------------
+ */
+    float Kmn  = 0.002 ; float kp2n = 1000.0 ; float km2n = jffnVal.r ;
+    float Cass = ccccVal.b ;
+
+    float kappa     = 1. + Kmn/Cass ;
+    kappa           = kappa*kappa*kappa*kappa ;
+
+    float alpha_n   = 1.0 /( kp2n/km2n  + kappa ) ;
+    float ninf      = alpha_n*kp2n/km2n ;
+    float tn        = Ct_n/km2n ;
+    jffnVal.a       = ninf + ( jffnVal.a - ninf )*exp(-dt/tn ) ;
+
+/*------------------------------------------------------------------------
+ * jffnOut
+ *------------------------------------------------------------------------
+ */
+    jffnOut = jffnVal ;
+
+/*========================================================================
+ * xxxx
+ *========================================================================
+ */ 
+    vec4    xxxxVal = texture( xxxxIn,  pixPos   ) ;
+
+
+/*-------------------------------------------------------------------------
+ * x_r,fast --- x_r,inf
+ *-------------------------------------------------------------------------
+ */
+    float   xrinf   = 1./
+            (   1.  +   exp(   -(V+8.337)/6.789    )       ) ;
+
+    float   txrfast  = (
+             12.98 + 1./
+            (   0.3652*exp(     (V-31.66)/3.869    ) +
+                4.123e-5*exp(  -(V-47.78)/20.38    )       )
+        )*Ct_xrfast ;
+
+    float   txrslow  = (
+                1.865 + 1./
+            (   0.06629*exp(    (V-34.70)/7.355    ) +
+                1.128e-5*exp(   (29.74-V)/25.94    )       ) 
+        ) * Ct_xrslow ;
+
+    xxxxVal.r = xrinf + ( xxxxVal.r - xrinf )*exp( -dt/txrfast ) ;
+    xxxxVal.g = xrinf + ( xxxxVal.g - xrinf )*exp( -dt/txrslow ) ;
+
+/*-------------------------------------------------------------------------
+ * x_s1 --- x_s2
+ *-------------------------------------------------------------------------
+ */
+    float   xs1inf  = 1./
+            (   1. +    exp(   -(V+11.60)/8.932    )       ) ;
+
+    float   xs2inf  = xs1inf ;
+    float   txs1    = (
+             817.3 + 1./
+            (   2.326e-4*exp(   (V+48.28)/17.80    ) +
+                0.001292*exp(  -(V+210.0)/230.0    )       )
+        ) * Ct_xs1 ;
+    float   txs2    = (
+             1./
+            (   0.01*exp(       (V-50.0)/20.0      ) +
+                0.0193*exp(    -(V+66.54)/31.      )       ) 
+        ) * Ct_xs2 ;
+    xxxxVal.b = xs1inf + ( xxxxVal.b - xs1inf )*exp( -dt/txs1 ) ;
+    xxxxVal.a = xs2inf + ( xxxxVal.a - xs2inf )*exp( -dt/txs2 ) ;
+
+/*------------------------------------------------------------------------
+ * xxxxOut
+ *------------------------------------------------------------------------
+ */
+    xxxxOut = xxxxVal ;
+
+    return ;
+}
+</script><!-- end of s1compShader shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='s2compShader' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * s2compShader :   vvxc, cccc, kknn
+ *
+ * PROGRAMMER   :   ABOUZAR KABOUDIAN
+ * DATE         :   Wed 26 Jul 2017 10:36:21 AM EDT
+ * PLACE        :   Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+precision highp int ;
+precision highp float ;
+precision highp sampler2D ;
+precision highp usampler2D ;
+
+
+#define     EPI     1
+#define     ENDO    2
+#define     MID     3
+
+
+/*------------------------------------------------------------------------
+ * Interface variables 
+ *------------------------------------------------------------------------
+ */
+in      vec2 pixPos ;
+in      vec2 cc ;
+
+uniform float       dt ;
+uniform float       ds_x, ds_y ;
+uniform float       diffCoef, C_m ;
+uniform float       minVlt, maxVlt ;
+
+#define lx 10.0 
+uniform sampler2D   icolor0 ;
+uniform int     mx, my ;    /* number of z-layers in S and T 
+                               directions  of the textures */
+
+/*========================================================================
+ * all direction macros go here for safe access
+ *========================================================================
+ */
+#define NORTH   dir0.r
+#define SOUTH   dir0.g
+#define EAST    dir0.b
+#define WEST    dir0.a
+
+#define UP      dir1.r
+#define DOWN    dir1.g
+
+/*========================================================================
+ * packing and unpacking two integers to and from a single unsigned int.
+ *========================================================================
+ */
+#define pack(i,j)   uint((uint(i)<<16)+uint(j))
+#define unpack(I)   ivec2(uint(I)>>16, uint(I) & uint(65535) )
+
+
+
+// coordinate of the system ..............................................
+uniform sampler2D   compressed3dCrdt ;
+                              
+// directional information ...............................................
+uniform usampler2D  idir0 ;
+uniform usampler2D  idir1 ;
+
+
+/* Input texture variables */
+uniform sampler2D   mhjjIn ; 
+uniform sampler2D   jaiiIn ; 
+uniform sampler2D   aiidIn ; 
+uniform sampler2D   ffffIn ; 
+uniform sampler2D   jffnIn ; 
+uniform sampler2D   xxxxIn ; 
+uniform sampler2D   vvxcIn ; 
+uniform sampler2D   ccccIn ; 
+uniform sampler2D   kknnIn ; 
+
+/* Extra-cellular concenterations */
+uniform float       Ca_o, Na_o, K_o ;
+
+/* time factor multipliers */
+uniform float       Ct_m          ; 
+uniform float       Ct_h          ; 
+uniform float       Ct_j          ; 
+uniform float       Ct_hCaMKslow  ; 
+uniform float       Ct_hslow      ; 
+uniform float       Ct_mL         ; 
+uniform float       Ct_jCaMK      ; 
+uniform float       Ct_hL         ; 
+uniform float       Ct_hLCaMK     ; 
+uniform float       Ct_a          ; 
+uniform float       Ct_ifast      ; 
+uniform float       Ct_islow      ; 
+uniform float       Ct_aCaMK      ; 
+uniform float       Ct_iCaMKfast  ; 
+uniform float       Ct_iCaMKslow  ; 
+uniform float       Ct_d          ; 
+uniform float       Ct_ffast      ; 
+uniform float       Ct_fslow      ; 
+uniform float       Ct_fCafast    ; 
+uniform float       Ct_fCaslow    ; 
+uniform float       Ct_jCa        ; 
+uniform float       Ct_fCaMKfast  ; 
+uniform float       Ct_fCaCaMKfast; 
+uniform float       Ct_n          ; 
+uniform float       Ct_xrfast     ; 
+uniform float       Ct_xrslow     ; 
+uniform float       Ct_xs1        ; 
+uniform float       Ct_xs2        ; 
+uniform float       Ct_xk1        ; 
+uniform float       Ct_relNP      ; 
+uniform float       Ct_relCaMK    ; 
+uniform float       Ct_tr         ; 
+uniform float       Ct_diffCa     ; 
+uniform float       Ct_diffNa     ; 
+uniform float       Ct_diffK      ; 
+
+/* current multipliers */
+uniform float       C_Na        ;
+uniform float       C_NaCa      ;
+uniform float       C_to        ;
+uniform float       C_CaL       ;
+uniform float       C_CaNa      ;
+uniform float       C_CaK       ;
+uniform float       C_Kr        ;
+uniform float       C_Ks        ;
+uniform float       C_K1        ;
+uniform float       C_NaCai     ;
+uniform float       C_NaCass    ;
+uniform float       C_NaKNa     ;
+uniform float       C_NaKK      ;
+uniform float       C_NaK       ;
+uniform float       C_Nab       ;
+uniform float       C_Kb        ;
+uniform float       C_Cab       ;
+uniform float       C_pCa       ;
+uniform float       C_relNP     ;
+uniform float       C_relCaMK   ;
+uniform float       C_upNP      ;
+uniform float       C_upCaMK    ;
+uniform float       C_leak      ;
+uniform float       C_up        ;
+uniform float       C_tr        ;
+uniform float       C_rel       ;
+uniform float       C_diffCa    ;
+uniform float       C_diffNa    ;
+uniform float       C_diffK     ;
+
+/* Scaling Factors          */
+uniform float       SGNalate ;  
+uniform float       SGto     ;  
+uniform float       SPCa     ;  
+uniform float       SGKr     ;  
+uniform float       SGKs     ;  
+uniform float       SGK1     ;  
+uniform float       SGNaCa   ;  
+uniform float       SGNaK    ;  
+uniform float       SGKb     ;  
+uniform float       SJrel    ;  
+uniform float       SJup     ;  
+uniform float       SCMDN    ;  
+
+uniform int         cellType ;
+
+/*------------------------------------------------------------------------
+ * outputs
+ *------------------------------------------------------------------------
+ */
+layout (location = 0 )  out vec4  mhjjOut ;
+layout (location = 1 )  out vec4  jaiiOut ;
+layout (location = 2 )  out vec4  vvxcOut ;
+layout (location = 3 )  out vec4  ccccOut ;
+layout (location = 4 )  out vec4  kknnOut ;
+
+/*-------------------------------------------------------------------------
+ * pow8
+ *-------------------------------------------------------------------------
+ */
+float   pow8(float x){
+    return  x*x*x*x*
+            x*x*x*x ;
+}
+/*-------------------------------------------------------------------------
+ * macros (of constants)
+ *-------------------------------------------------------------------------
+ */
+#define bt          4.75
+#define arel        2.375
+#define btCaMK      5.9375
+#define arekCaMK    2.96875
+
+#define i           0
+#define ss          1
+
+#define kNa1        15.0
+#define kNa2        5.0
+#define kNa3        88.12
+#define kasymm      12.5
+#define omegaNa     6.0e4
+#define omegaCa     6.0e4
+#define omegaNaCa   5.0e3
+#define kCaon       1.5e6
+#define kCaoff      5.0e3
+#define KmCaAct     150.e-6
+
+#define Nao         Na_o
+#define Cao         Ca_o
+#define Ko          K_o
+
+#define qNa         0.5224
+#define qCa         0.1670
+
+//#define Nao         140.0
+//#define Cao         1.8
+//#define Ko          5.4
+
+#define zNa         1.0
+#define zCa         2.0
+#define zK          1.0 
+
+#define gKi         0.75
+#define gKo         0.75
+#define gCai        1.0 
+#define gCao        0.341
+
+#define GNaCa       0.0008
+#define GNa         14.838
+#define Gto         0.02
+
+#define gNai        0.75
+#define gNao        0.75
+
+#define PNab        3.75e-10
+#define PCab        2.5e-8
+#define GpCa        0.0005
+#define PRNaK       0.01833
+
+#define arelCaMK    2.96875
+#define byCaMK      5.9375
+
+#define ACaMK       0.05
+#define bCaMK       0.00068
+#define CaMK0       0.05
+#define KmCaM       0.0015
+#define KmCaMK      0.15
+#define CaMKo       0.05
+
+#define GNafast     75.0
+#define GNalate     0.0075
+
+#define CSQN        10.
+#define KmCSQN      0.8
+#define CMDNI       0.05
+#define KmCMDN      0.00238
+#define TRPN        0.07
+#define KmTRPN      0.0005
+#define tdiffCaCnst 0.2
+
+#define Acap        1.534e-4
+#define Ageo        0.767e-4
+#define vcell       38.0e-6
+#define vss         0.76e-6
+#define vmyo        25.84e-6
+#define vnsr        2.098e-6
+#define vjsr        0.182e-6
+
+#define BSR         0.047
+#define KmBSR       0.00087
+#define BSL         1.124
+#define KmBSL       0.0087
+
+
+#define F           96486.7
+#define R           8314.3
+#define T           310.
+
+#define kp1         949.5
+#define kp2         687.2
+#define kp3         1899.
+#define kp4         639.0
+#define km1         182.4
+#define km2         39.4
+#define km3         79300.0
+#define km4         40.0
+#define KKi         0.5
+#define KKo         0.3582
+#define MgADP       0.05
+#define MgATP       9.8
+#define KMgATP      1.698e-7
+#define H           1.e-7
+#define SP          4.2
+#define KHP         1.698e-7
+#define KNaP        224.0
+#define KKP         292.0
+
+#define K0Nai       9.073        
+#define K0Nao       27.78 
+#define Delta       -0.1550 
+
+const float rtof    = R*T/F ;
+const float fort    = F/(R*T) ;
+
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ * Main body of the shader
+ *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ */
+void main() {
+    // extract pixel values from textures ................................
+    ivec2 isize = textureSize(vvxcIn,        0 ) ;
+    ivec2 texelPos = ivec2( cc*vec2(isize) ) ; 
+
+    vec4 mhjjVal  = texelFetch(mhjjIn, texelPos, 0 ) ; 
+    vec4 jaiiVal  = texelFetch(jaiiIn, texelPos, 0 ) ; 
+    vec4 aiidVal  = texelFetch(aiidIn, texelPos, 0 ) ; 
+    vec4 ffffVal  = texelFetch(ffffIn, texelPos, 0 ) ; 
+    vec4 jffnVal  = texelFetch(jffnIn, texelPos, 0 ) ; 
+    vec4 xxxxVal  = texelFetch(xxxxIn, texelPos, 0 ) ; 
+    vec4 vvxcVal  = texelFetch(vvxcIn, texelPos, 0 ) ; 
+    vec4 ccccVal  = texelFetch(ccccIn, texelPos, 0 ) ; 
+    vec4 kknnVal  = texelFetch(kknnIn, texelPos, 0 ) ; 
+
+    float   V = vvxcVal.r ;
+    vec2    v = vec2( vvxcVal.g, 0.5 ) ;
+
+    vec2    cc      = pixPos ;
+    vec2    size    = vec2(textureSize( vvxcIn, 0 ) );
+    float   cddx    = size.x/ds_x ;
+    float   cddy    = size.y/ds_y ;
+
+    cddx *= cddx ;
+    cddy *= cddy ;
+
+
+/*========================================================================
+ * mhjj and jaii
+ *========================================================================
+ */
+
+/*-------------------------------------------------------------------------
+ * m
+ *-------------------------------------------------------------------------
+ */
+    float   minf    = 1./pow((1.+exp((-56.86-V)/9.03)),2.0) ;
+    float   alpha_m = 1.0/(1.0+exp((-60.0-V)/5.0)) ;
+    float   beta_m  = 0.1/(1.0+exp((V+35.0)/5.0))
+                        + 0.1/(1.0+exp((V-50.0)/200.0)) ;
+
+    float   tm      = alpha_m*beta_m*Ct_m ;
+
+    mhjjVal.r   = minf + ( mhjjVal.r - minf     )*exp( -dt/tm    ) ;
+
+/*-------------------------------------------------------------------------
+ * h
+ *-------------------------------------------------------------------------
+ */
+    float   hinf    = 1.0/pow(1.0+exp((V+71.55)/7.43),2.0) ;
+    float   alpha_h ;
+    float   beta_h ;
+    if (V >= -40.0){
+        alpha_h     = 0.0 ;
+        beta_h      = 0.77/(0.13*(1.0 + exp(-(V+10.66)/11.1))) ;
+    }else{
+        alpha_h     = 0.057*exp( -(V+80.0)/6.8 ) ;
+        beta_h      = 2.7*exp(0.079*V)
+                    + 3.1e5*exp(0.3485*V) ;
+    }
+
+    float   th      = (1.0/(alpha_h + beta_h) )*Ct_h ;
+
+    mhjjVal.g   = hinf + ( mhjjVal.g - hinf )*exp( -dt/th ) ;
+
+/*-------------------------------------------------------------------------
+ * j
+ *-------------------------------------------------------------------------
+ */
+    float   jinf    = 1.0/pow(1.0 + exp((V+71.55)/7.43), 2.0) ;
+    float   alpha_j ;
+    float   beta_j ;
+    if( V >= -40.0){
+        alpha_j     = 0.0 ;
+        beta_j      = 0.6*exp(0.057*V)
+                    /(1.0 + exp(-0.1*(V+32.0))) ;
+    }else{
+        alpha_j     = ( -2.5428e4*exp(0.2444*V)
+                        -6.948e-6*exp(-0.04391*V)  )
+                    *(V+37.78)
+                    /(1.0 + exp(0.311*(V+79.23))) ;
+        beta_j      = 0.02424*exp(-0.01052*V)
+                    /(1.0 + exp(-0.1378*(V+40.14))) ;
+    }
+    float   tj      = ( 1.0/(alpha_j + beta_j) )*Ct_j ;
+
+
+    mhjjVal.b   = jinf + ( mhjjVal.b - jinf     )*exp( -dt/tj     ) ;
+
+
+/*-------------------------------------------------------------------------
+ *  x_k1
+ *-------------------------------------------------------------------------
+ */
+    float   xK1inf  = 1./
+            (   1.  +   exp(   -(V+2.5538*Ko + 144.59  )/
+                                     (1.5692*Ko + 3.8115 )  )   ) ;
+
+
+    float   txK1    = (
+            122.2/
+            (   exp(   -( V+127.2   )/20.36 ) +
+                exp(    ( V+236.8   )/69.33 )              ) 
+        ) * Ct_xk1 ;
+
+    /* Updating x_k1 channel        */
+    vvxcVal.b = xK1inf + ( vvxcVal.b - xK1inf)*exp( -dt/txK1 ) ;
+
+/*-------------------------------------------------------------------------
+ * a
+ *-------------------------------------------------------------------------
+ */
+    float   ainf    = 1./
+            (   1. +    exp(  -(V-14.34)/14.82     )       )  ;
+    
+    float   ta      = (
+            1.0515/
+            (   1./ (   1.2089*(1.+exp(-(V-18.41)/29.38))  ) +
+                3.5/(   1. + exp(  (V+100.)/29.38  )   )   ) 
+        )*Ct_a ;
+    jaiiVal.g = ainf      + ( jaiiVal.g - ainf)*exp( -dt/ta       ) ;
+
+/*-------------------------------------------------------------------------
+ * i_fast --- i_slow
+ *-------------------------------------------------------------------------
+ */
+    float   delta_epi   = ( cellType == EPI ) ?  1.0 - 
+                    0.95/(1.0 + exp((V+70.0)/5.0)) : 1.0 ;
+
+    float   iinf        = 1./
+            (   1. + exp(   (V+43.94)/5.711    )           )  ;
+    
+    float   tifast      = (4.562 + 1./
+            (   0.3933*exp(-(V+100.)/100.  ) +
+                0.08004*exp((V+50.0)/16.59 )               ) 
+        )*delta_epi*Ct_ifast ;
+
+    float   tislow      = (23.62 +
+            1./( 0.001416*exp(-(V+96.52)/59.05 )
+                +1.7808e-8*exp((V+114.1)/8.079 )           ) 
+        )*delta_epi*Ct_islow ;
+
+    jaiiVal.b = iinf      + ( jaiiVal.b - iinf )*exp( -dt/tifast   ) ;
+    jaiiVal.a = iinf      + ( jaiiVal.a - iinf )*exp( -dt/tislow   ) ;
+
+/*========================================================================
+ * kiii
+ *========================================================================
+ */
+    float vfort   = V*fort ;
+    float vffort  = vfort*F ;
+
+    float   alphaCass ;
+    float   betaCao ;
+    float   alphaNass ; 
+    float   betaNao ;
+    float   alphaKss ;
+    float   betaKo ;
+
+    if ( abs(vfort)>0.01){
+        alphaCass = (zCa*zCa*vffort*gCai*exp(zCa*vfort))/
+                            (   exp(zCa*vfort) - 1.0        ) ; 
+        betaCao     = zCa*zCa*vffort*gCao*Cao/
+                        (   exp(zCa*vfort) - 1.0            )  ;
+        alphaNass = zNa*zNa*vffort*gNai*exp(zNa*vfort)/
+                            (   exp(zNa*vfort) - 1.0        ) ;
+
+        betaNao =  zNa*zNa*vffort*gNao*Nao/
+                            (   exp(zNa*vfort) - 1.0        ) ;
+        betaKo  = zK*zK*vffort*gKo*Ko/
+                            (   exp(zK*vfort) - 1.0         ) ;
+        alphaKss = zK*zK*vffort*gKi*exp(zK*vfort)/
+                            (   exp(zK*vfort) - 1.0         ) ;
+
+    }else{
+        alphaCass = (zCa*F*gCai + zCa*V*F*gCai ) ;
+        betaCao = zCa*F*gCao*Cao/exp(zCa*vfort) ;
+        alphaNass = zNa*gNai*(F+ vffort*zNa)  ;
+        betaNao = zNa*F*gNao*Nao/
+                            (   exp(zNa*vfort)        ) ;
+        betaKo  = zK*F*gKo*Ko/ (   exp(zK*vfort)        ) ;
+
+        alphaKss = zK*gKi*(F + vffort*zK) ;
+    }
+
+
+    float   Cass        = ccccVal.b ;
+    float   PsiCa       = alphaCass*Cass - betaCao ;
+    float   PCa         = 0.0001*SPCa ;
+    float   IbarCaL     = PCa*PsiCa ;
+
+    float   Nass        = kknnVal.b ;
+    float   PsiCaNa     = alphaNass*Nass - betaNao ;
+    float   PCaNa       = 0.00125*PCa ;
+    float   IbarCaNa    = PCaNa*PsiCaNa ;
+
+    float   PCaK        = 3.574e-4*PCa ;
+    float   Kss         = kknnVal.r ;
+    float   PsiCaK      = alphaKss*Kss - betaKo ;
+    float   IbarCaK     = PCaK*PsiCaK ;
+
+    float   PCaCaMK     = 1.1*PCa ;
+    float   IbarCaLCaMK = PCaCaMK*PsiCa ;
+
+    float   PCaNaCaMK   = 0.00125*PCaCaMK ;
+    float   IbarCaNaCaMK= PCaNaCaMK*PsiCaNa ;
+
+    float   PCaKCaMK    = 3.574e-4*PCaCaMK ;
+    float   IbarCaKCaMK = PCaKCaMK*PsiCaK ;
+
+    float   d           = aiidVal.a ;
+    float   ffast       = ffffVal.r ;
+    float   fslow       = ffffVal.g ;
+    float   Affast      = 0.6 ;
+    float   Afslow      = 1.-Affast ;
+    float   f           = Affast*ffast + Afslow*fslow ;
+
+    float   AfCafast    =  0.3 +
+               0.6/(    1. + exp((V-10.)/10.)              ) ;
+    float   AfCaslow    = 1. - AfCafast ;
+    float   fCafast     = ffffVal.b ;
+    float   fCaslow     = ffffVal.a ;
+    float   fCa         = AfCafast*fCafast + AfCaslow*fCaslow ;
+
+    float   fCaMKfast   = jffnVal.g ;
+    float   fCaMKslow   = fslow ;
+    float   AfCaMKfast  = Affast ;
+    float   AfCaMKslow  = Afslow ;
+    float   fCaMK       = AfCaMKfast*fCaMKfast + AfCaMKslow*fCaMKslow ;
+
+    float   fCaCaMKfast = jffnVal.b ;
+    float   fCaCaMKslow = fCaslow ;
+    float   AfCaCaCMfast= Affast ;
+    float   AfCaCaCMslow= Afslow ;
+    float   fCaCaMK     = fCaCaMKfast*AfCaCaCMfast + fCaCaMKslow*AfCaCaCMslow ;
+
+    float   n           = jffnVal.a ;
+    float   jCa         = jffnVal.r ;
+
+    float   CaMKt       = vvxcVal.a ;
+
+    float   CaMKb       = CaMKo*(1.0-CaMKt)/(1.0+KmCaM/Cass) ;
+    float   CaMKa       = CaMKb + CaMKt ;
+
+    float   fICaLCaMK   = 1./(1.+KmCaMK/CaMKa) ;
+
+    float   alpha_I = d*(1.0 - fICaLCaMK )*( f*(1.-n) + fCa*n*jCa) ;
+    float   beta_I  = d*fICaLCaMK*( fCaMK*(1.-n) + fCaCaMK*n*jCa ) ;
+
+/*-------------------------------------------------------------------------
+ * CaMK_trap
+ *-------------------------------------------------------------------------
+ */
+    float   dCaMKt2dt = ACaMK*CaMKb*(CaMKb + CaMKt) - bCaMK*CaMKt ;
+
+     /* updating CaMK_trap channle  */
+     vvxcVal.a += dCaMKt2dt*dt ;
+     CaMKt = vvxcVal.a ;
+
+/*-------------------------------------------------------------------------
+ * I_CaL
+ *-------------------------------------------------------------------------
+ */
+    float   ICaL    = C_CaL*(alpha_I*IbarCaL    + beta_I*IbarCaLCaMK    ) ;
+
+/*-------------------------------------------------------------------------
+ * I_CaNa
+ *-------------------------------------------------------------------------
+ */
+    float   ICaNa   = C_CaNa*(alpha_I*IbarCaNa  + beta_I*IbarCaNaCaMK   ) ;
+
+/*-------------------------------------------------------------------------
+ * I_CaK
+ *-------------------------------------------------------------------------
+ */
+    float   ICaK    = C_CaK*(alpha_I*IbarCaK    + beta_I*IbarCaKCaMK    ) ;
+
+/*-------------------------------------------------------------------------
+ * [K]_ss, JdiffK
+ *-------------------------------------------------------------------------
+ */
+    float   tdiffK  = 2.0 * Ct_diffK ;
+    float   Ki      = kknnVal.g ;
+    float   JdiffK  = C_diffK*(Kss -Ki)/tdiffK ;
+
+    float   dKss2dt = -ICaK*Acap/(F*vss) - JdiffK ;
+    kknnVal.r       += dKss2dt*dt ;
+
+/*-------------------------------------------------------------------------
+ * J_rel,NP
+ *-------------------------------------------------------------------------
+ */
+    float   Cajsr       = ccccVal.g ;
+
+    float   bjsr        = -ICaL/(1.0+pow8(1.5/Cajsr)) ;
+    float   ajsr        = 1.0/(1.0+(0.0123/Cajsr) ) ;
+
+    float   JrelNP      = mhjjVal.a ;
+    float   JrelNPinf   = arel*bjsr*SJrel ;
+    float   trelNP      = max(bt*ajsr ,0.001) * Ct_relNP ;
+
+    /* Updating J_rel,NP channel    */
+    JrelNP = JrelNPinf + ( JrelNP - JrelNPinf)*exp(-dt/trelNP) ;
+
+    mhjjVal.a = JrelNP ;
+
+/*-------------------------------------------------------------------------
+ * J_rel,CaMK
+ *-------------------------------------------------------------------------
+ */
+    float   JrelCaMK    = jaiiVal.r ;
+    float   JrelCaMKinf = arelCaMK*bjsr*SJrel ;
+    float   trelCaMK    = max( btCaMK * ajsr , 0.001 ) * Ct_relCaMK ;
+
+    /* Updatig J_rel,CaMK channel   */
+    JrelCaMK = JrelCaMKinf + ( JrelCaMK - JrelCaMKinf )*exp(-dt/trelCaMK) ;
+
+    jaiiVal.r = JrelCaMK ;
+
+/*------------------------------------------------------------------------
+ * J_rel
+ *------------------------------------------------------------------------
+ */
+    CaMKt       = vvxcVal.a ;
+    CaMKb       = CaMK0*(1.0-CaMKt)/(1.0 + KmCaM/Cass) ;
+    CaMKa       = CaMKb + CaMKt ;
+
+    float   frelCaMK    = 1.0/(1.0 + KmCaMK/CaMKa ) ;
+    float   Jrel        = (1.0 - frelCaMK)*JrelNP +  frelCaMK*JrelCaMK ;
+    Jrel               *= C_rel ;
+
+/*------------------------------------------------------------------------
+ * J_up
+ *------------------------------------------------------------------------
+ */
+    float   Cai         = ccccVal.a ;
+    float   Cansr       = ccccVal.r ;
+    float   JupNP       = 0.004375*Cai/(0.00092 + Cai) ;
+            JupNP       *= SJup ;
+            JupNP       *= C_upNP ;
+
+    float   dKmPLB      = 0.00017 ;
+    float   dJupCAMK    = 1.75 ;
+
+    float   JupCaMK     = ( 1.0 + dJupCAMK )*0.004375*Cai/
+                (   0.00092 - dKmPLB + Cai                  ) ;
+            JupCaMK    *= SJup ;
+            JupCaMK    *= C_upCaMK ;
+
+    float   fupCaMK = frelCaMK ;
+    float   Jleak   = 0.0039375*Cansr/15.0 ;
+            Jleak  *= C_leak ;
+
+    float   Jup  = ( 1.0 - fupCaMK )*JupNP + fupCaMK*JupCaMK - Jleak ;
+            Jup *= C_up ;
+
+/*------------------------------------------------------------------------
+ * Ca_nsr
+ *------------------------------------------------------------------------
+ */
+    Cansr       = ccccVal.r ;
+    Cajsr       = ccccVal.g ;
+    Cass        = ccccVal.b ;
+    Cai         = ccccVal.a ;
+    float   ttr         = 100.0 * Ct_tr ;
+    float   Jtr         = ( Cansr - Cajsr )/ttr ;
+            Jtr        *= C_tr ;
+
+
+    float   dCansr2dt = Jup - Jtr*vjsr/vnsr ;
+
+    Cansr += dCansr2dt*dt ;
+
+    /* Updating [Ca]_nsr channel    */
+    ccccVal.r =  Cansr ;
+
+/*------------------------------------------------------------------------
+ * Ca_jsr
+ *------------------------------------------------------------------------
+ */
+    float   aCajsrs= KmCSQN + Cajsr ;
+    aCajsrs *= aCajsrs ;
+    float   bCajsr = 1.0/(1.0 + CSQN*KmCSQN/aCajsrs ) ;
+
+    float   dCajsr2dt = bCajsr*(Jtr - Jrel) ;
+    Cajsr += dCajsr2dt*dt ;
+
+    /* Updating [Ca]_jsr channel    */
+    ccccVal.g =  Cajsr ;
+
+/*========================================================================
+ * ciii
+ *========================================================================
+ */
+    float   hCa = exp(qCa*vfort) ;
+    float   hNa = exp(qNa*vfort) ;
+
+    float   Ca[2] ;
+    float   Na[2] ;
+    float   INaCaArray[2] ;
+    float   aGNaCa[2] ;
+    float   C_NaCaArray[2] ;
+
+    aGNaCa[ i ] = 0.8*SGNaCa ;
+    aGNaCa[ ss] = 0.2*SGNaCa ;
+
+    C_NaCaArray[ i ] = C_NaCai ;
+    C_NaCaArray[ ss] = C_NaCass ;
+
+    Ca[ss]  = ccccVal.b ;
+    Ca[i ]  = ccccVal.a ;
+    Na[ss]  = kknnVal.b ;
+    Na[i ]  = kknnVal.a ;
+
+    float   h1 , h2 , h3 , h4 ,
+            h5 , h6 , h7 , h8 ,
+            h9 , h10, h11, h12;
+
+    float   k1 , k2 , k3 , k4 ,
+            k5 , k6 , k7 , k8 ;
+    float   k3p, k3pp, k4p, k4pp ;
+
+    float   x1 , x2 , x3 , x4 ;
+    float   E1 , E2 , E3 , E4 ;
+    float   xs ;
+
+    float   KmCaAct2CaS ;
+    float   allo ;
+    float   JNaCaNa ;
+    float   JNaCaCa ;
+
+    /* Coefficients independent of i, ss values     */
+    h7   = 1.0 + Nao*(1.0 + 1.0/hNa)/kNa3 ;
+    h8   = Nao/(kNa3*hNa*h7) ;
+    h9   = 1.0/h7 ;
+    h10  = kasymm + 1.0 + Nao*(1.0+Nao/kNa2)/kNa1 ;
+    h11  = Nao*Nao/(h10*kNa1*kNa2) ;
+    h12  = 1.0/h10 ;
+
+    k1   = h12*Cao*kCaon ;
+    k2   = kCaoff ;
+    k3p  = h9*omegaCa ;
+    k3pp = h8*omegaNaCa ;
+    k3   = k3p + k3pp ;
+
+    /* Coefficients depending on i, and ss values   */
+    for(int Y=0 ; Y<2 ; Y++){
+        h1      = 1.0 + Na[Y]*(1.+hNa)/kNa3 ;
+        h2      = Na[Y]*hNa/( kNa3*h1  ) ;
+        h3      = 1.0/h1 ;
+        h4      = 1.0+ Na[Y]*(1.0 + Na[Y]/kNa2)/kNa1 ;
+        h5      = Na[Y]*Na[Y]/( h4*kNa1*kNa2   ) ;
+        h6      = 1.0/h4 ;
+
+        k4p     = h3*omegaCa/hCa ;
+        k4pp    = h2*omegaNaCa ;
+        k4      = k4p + k4pp ;
+        k5      = kCaoff ;
+        k6      = h6*Ca[Y]*kCaon ;
+        k7      = h5*h2*omegaNa ;
+        k8      = h8*h11*omegaNa ;
+        x1      = k2*k4*(k7+k6) + k5*k7*(k2+k3) ;
+        x2      = k1*k7*(k4+k5) + k4*k6*(k1+k8) ;
+        x3      = k1*k3*(k7+k6) + k8*k6*(k2+k3) ;
+        x4      = k2*k8*(k4+k5) + k3*k5*(k1+k8) ;
+        xs      = x1 + x2 + x3 + x4 ;
+
+        E1      = x1/xs ;
+        E2      = x2/xs ;
+        E3      = x3/xs ;
+        E4      = x4/xs ;
+
+        KmCaAct2CaS = KmCaAct/Ca[Y] ;
+        KmCaAct2CaS *= KmCaAct2CaS ;
+
+        allo    = 1./(1. + KmCaAct2CaS ) ;
+        JNaCaNa = 3.0*(E4*k7 - E1*k8) + E3*k4pp - E2*k3pp ;
+        JNaCaCa = E2*k2 - E1*k1 ;
+
+        INaCaArray[Y]= C_NaCaArray[Y]*GNaCa*aGNaCa[Y]*allo*
+                        (zNa*JNaCaNa + zCa*JNaCaCa) ;
+    }
+
+    /* Updating INaCai & INaCass channels */
+    float INaCai    = INaCaArray[ i  ] ;
+    float INaCass   = INaCaArray[ ss ] ;
+
+/*-------------------------------------------------------------------------
+ * I_pCa & I_Cab
+ *-------------------------------------------------------------------------
+ */
+    float ICab  = C_Cab*PCab*(alphaCass*Cai - betaCao ) ;
+    float IpCa  = C_pCa*GpCa*Cai/(0.0005+Cai) ;
+
+/*-------------------------------------------------------------------------
+ * [Ca]_i
+ *-------------------------------------------------------------------------
+ */
+    float   tdiffCa = tdiffCaCnst * Ct_diffCa ;
+    float   JdiffCa = (Cass - Cai)/tdiffCa ;
+            JdiffCa*= C_diffCa ;
+
+    float CMDN = CMDNI*SCMDN ;
+
+    float b1    = KmCMDN + Cai ;
+    b1 *= b1 ;
+
+    float b2    = KmTRPN + Cai ;
+    b2 *= b2 ;
+
+    float betaCai = 1.0/(   1.0 +
+                            CMDN*KmCMDN/b1 +
+                            TRPN*KmTRPN/b2      ) ;
+
+    float   dCai2dt = betaCai*
+                (   -( IpCa + ICab - 2.0*INaCai )*Acap/(2.0*F*vmyo)
+                    - Jup*vnsr/vmyo
+                    + JdiffCa*vss/vmyo                              ) ;
+    Cai += dCai2dt*dt ;
+
+    /* Update [Ca]_i channel */
+    ccccVal.a   = Cai ;
+
+/*========================================================================
+ * knni
+ *========================================================================
+ */
+
+/*-------------------------------------------------------------------------
+ * ENa and EK
+ *-------------------------------------------------------------------------
+ */
+    Kss     = kknnVal.r ;
+    Ki      = kknnVal.g ;
+    Nass    = kknnVal.b ;
+    float   Nai         = kknnVal.a ;
+
+    float   ENa         = rtof*log( Nao/Nai ) ;
+    float   EK          = rtof*log( Ko/Ki   ) ;
+
+    float   EKs         = rtof*log((Ko+PRNaK*Nao)/(Ki + PRNaK*Ki)) ;
+
+/*-------------------------------------------------------------------------
+ * I_Na
+ *-------------------------------------------------------------------------
+ */
+    float   fINaCaMK    = 1.0/(1.0 + (KmCaMK/CaMKa) ) ;
+    float   fINaLCaMK   = fINaCaMK ;
+
+    float   m   = mhjjVal.r ;
+    float   h   = mhjjVal.g ;
+    float   j   = mhjjVal.b ;
+    float   INa = C_Na*GNa*m*m*m*h*j*(V - ENa ) ;
+
+/*-------------------------------------------------------------------------
+ * I_NaCa
+ *-------------------------------------------------------------------------
+ */
+    float   INaCa       = C_NaCa*(INaCai + INaCass) ;
+
+/*-------------------------------------------------------------------------
+ * I_to
+ *-------------------------------------------------------------------------
+ */
+    float   a           = jaiiVal.g ;
+
+    float   ifast       = jaiiVal.b ;
+    float   islow       = jaiiVal.a ;
+    float   Aifast      = 1./
+            (    1. +   exp(   (V-213.6)/151.2 )           )  ;
+    float   Aislow      = 1.0 - Aifast ;
+    float   iavg        = Aifast*ifast + Aislow*islow ;
+
+    float   aCaMK       = aiidVal.r ;
+
+    float   AiCaMKfast  = Aifast ;
+    float   AiCaMKslow  = Aislow ;
+    float   iCaMKfast   = aiidVal.g ;
+    float   iCaMKslow   = aiidVal.b ;
+    float   iCaMK       = AiCaMKfast*iCaMKfast + AiCaMKslow*iCaMKslow;
+
+    float   fItoCaMK    = fINaCaMK ;
+
+    float   Ito         = C_to*SGto*Gto*( V - EK  )*
+        ( ( 1.0 - fItoCaMK )*a*iavg    +   fItoCaMK*aCaMK*iCaMK    ) ;
+
+/*-------------------------------------------------------------------------
+ * I_Kr
+ *-------------------------------------------------------------------------
+ */
+    float   xrfast      = xxxxVal.r ;
+    float   xrslow      = xxxxVal.g ;
+    
+    float   Axrfast     = 1./
+            (   1.  +   exp(    (V+54.81)/38.21    )       )  ;
+    
+    float   Axrslow     = 1.0 - Axrfast ;
+    float   xr          = Axrfast*xrfast    +   Axrslow*xrslow ;
+
+    float   RKr         = 1./( ( 1.+exp((V+55.)/75.) )*
+                             ( 1.+exp((V-10.)/30.) )       ) ;
+
+    float   GKr         = 0.046*SGKr ;
+
+    float   IKr         = C_Kr*GKr*sqrt(Ko/5.4)*xr*RKr*(V-EK) ;
+
+/*-------------------------------------------------------------------------
+ * I_Ks
+ *-------------------------------------------------------------------------
+ */
+    float   xs1         = xxxxVal.b ;
+    float   xs2         = xxxxVal.a ;
+    float   GKs         = 0.0034*SGKs ;
+
+    float   IKs         = C_Ks*GKs*(1.0 + 0.6/(1.0 + pow(3.8e-5/Cai, 1.4)))*
+                            xs1*xs2*( V - EKs   ) ;
+
+/*-------------------------------------------------------------------------
+ * I_K1
+ *-------------------------------------------------------------------------
+ */
+    float   xK1         = vvxcVal.b ;
+    float   RK1         = 1./
+            (   1. + exp((  V + 105.8 - 2.6*Ko  )/9.493 )   )  ;
+    float   GK1         = 0.1908*sqrt(Ko)*SGK1 ;
+    float   IK1         = C_K1*GK1*xK1*RK1*( V - EK ) ;
+
+/*-------------------------------------------------------------------------
+ * I_NaK
+ *-------------------------------------------------------------------------
+ */
+    float   KNai        = K0Nai*exp( Delta*vfort/3.0       )  ;   
+    float   KNao        = K0Nao*exp( (1.0-Delta)*vfort/3.0 ) ;
+
+    float   P           = SP/(  1.0 + H/KHP + Nai/KNaP + Ki/KKP     ) ;
+
+    float   Nao2KNao    = Nao/KNao ;
+    float   Nai2KNai    = Nai/KNai ;
+    float   Ko2KKo      = Ko/KKo ;
+    float   Ki2KKi      = Ki/KKi ;
+
+    float   OPNao2KNao  = 1. + Nao2KNao ;
+    float   OPNai2KNai  = 1. + Nai2KNai ;
+    float   OPKo2KKo    = 1. + Ko2KKo ;
+    float   OPKi2KKi    = 1. + Ki2KKi ;
+
+    float   alpha1      = kp1*Nai2KNai*Nai2KNai*Nai2KNai/
+        (   OPNai2KNai*OPNai2KNai*OPNai2KNai + OPKi2KKi*OPKi2KKi - 1.0  ) ;
+
+    float   beta1       = km1*MgADP ;
+
+    float   alpha2      = kp2 ;
+
+    float   beta2       = km2*Nao2KNao*Nao2KNao*Nao2KNao/
+        (   OPNao2KNao*OPNao2KNao*OPNao2KNao + OPKo2KKo*OPKo2KKo - 1.0  ) ;
+
+    float   alpha3      = kp3*Ko2KKo*Ko2KKo/
+        (   OPNao2KNao*OPNao2KNao*OPNao2KNao + OPKo2KKo*OPKo2KKo - 1.0  ) ;
+
+    float   beta3       = km3*P*H/(   1.0 + MgATP/KMgATP                ) ;
+
+    float   alpha4      = kp4*(MgATP/KMgATP)/( 1. + MgATP/KMgATP        ) ;
+
+    float   beta4       = km4*Ki2KKi*Ki2KKi/
+        (   OPNai2KNai*OPNai2KNai*OPNai2KNai + OPKi2KKi*OPKi2KKi - 1.0  ) ;
+
+    float x11          =   alpha4*alpha1*alpha2 +  beta2*beta4*beta3
+                +   alpha2*beta4*beta3   +  beta3*alpha1*alpha2   ;
+
+    float x22          =   beta2*beta1*beta4    +  alpha1*alpha2*alpha3
+                +   alpha3*beta1*beta4   +  alpha2*alpha3*beta4   ;
+
+    float x33          =   alpha2*alpha3*alpha4 +  beta3*beta2*beta1
+                +   beta2*beta1*alpha4   +  alpha3*alpha4*beta1   ;
+
+    float x44          =   beta4*beta3*beta2    +  alpha3*alpha4*alpha1
+                        +   beta2*alpha4*alpha1  +  beta3*beta2*alpha1    ;
+
+    float   xsum    = x11 + x22 + x33 + x44 ;
+    float   E11     = x11/xsum ;
+    float   E22     = x22/xsum ;
+    float   E33     = x33/xsum ;
+    float   E44     = x44/xsum ;
+
+    float   JNaKNa  = C_NaKNa   * 3.0 *( E11*alpha3   -   E22*beta3    ) ;
+    float   JNaKK   = C_NaKK    * 2.0 *( E44*beta1    -   E33*alpha1   ) ;
+    float   INaK    = C_NaK     * SGNaK * 30. *( JNaKNa+   JNaKK       ) ;
+
+/*-------------------------------------------------------------------------
+ * I_Nab
+ *-------------------------------------------------------------------------
+ */
+    float   aNai        = alphaNass/gNai ;
+    float   bNao        = betaNao/gNao ;
+
+    float   INab        = C_Nab*PNab*(aNai*Nai - bNao) ;
+
+/*-------------------------------------------------------------------------
+ * I_Kb
+ *-------------------------------------------------------------------------
+ */
+    float   xKb         = 1.0/
+            (   1.0 + exp( ( 14.48 - V )/18.34 )           )  ;
+    float   GKb         = 0.003*SGKb ;
+
+    float   IKb         = C_Kb*GKb*xKb*(V-EK) ;
+
+/*-------------------------------------------------------------------------
+ * J_diff,Na
+ *-------------------------------------------------------------------------
+ */
+    float   tauDiffNa   = 2.0 * Ct_diffNa ;
+    float   tauDiffK    = 2.0 * Ct_diffK ;
+
+    float   JdiffNa     = C_diffNa * ( Nass    - Nai   )/tauDiffNa ;
+    JdiffK      = C_diffK  * ( Kss     - Ki    )/tauDiffK ;
+
+/*-------------------------------------------------------------------------
+ * [K]_i
+ *-------------------------------------------------------------------------
+ */
+    float   dKi2dt      =
+        -( Ito + IKr + IKs + IK1 +IKb - 2.0*INaK )*Acap/(F*vmyo) +
+        JdiffK*vss/vmyo ;
+    Ki +=  dKi2dt*dt ;
+    kknnVal.g   = Ki ;
+
+/*-------------------------------------------------------------------------
+ * [Na]_i
+ *-------------------------------------------------------------------------
+ */
+    float   dNai2dt     =
+        -( INa + 3.0*INaCai + 3.0*INaK + INab)*Acap/(F*vmyo) +
+        JdiffNa*vss/vmyo ;
+    Nai += dNai2dt*dt ;
+    kknnVal.a = Nai ;
+
+/*-------------------------------------------------------------------------
+ * [Na]_ss
+ *-------------------------------------------------------------------------
+ */
+    float   dNass2dt    =
+        -( ICaNa + 3.0*INaCass  )*Acap/(F*vss)  - JdiffNa ;
+    Nass += dNass2dt*dt ;
+    kknnVal.b = Nass ;
+
+/*-------------------------------------------------------------------------
+ * [Ca]_ss
+ *-------------------------------------------------------------------------
+ */
+    Cansr = ccccVal.r ;
+    Cajsr = ccccVal.g ;
+    Cass  = ccccVal.b ;
+    Cai   = ccccVal.a ;
+
+
+    tdiffCa = 0.2 ;
+    JdiffCa = (Cass - Cai)/tdiffCa ;
+    JdiffCa*= C_diffCa ;
+
+    b1 = KmBSR + Cass ;
+    b1 *= b1 ;
+
+    b2 = KmBSL + Cass ;
+    b2 *= b2 ;
+
+    float betaCass = 1.0/(  1.0 + BSR*KmBSR/b1 + BSL*KmBSL*b2   ) ;
+
+    float dCass2dt = betaCass*
+                (   -( ICaL - 2.0*INaCass )*Acap/(2.0*F*vss)
+                    + Jrel*vjsr/vss
+                    - JdiffCa                                   ) ;
+
+    /* Updating [Ca]_ss channel */
+    ccccVal.b += dCass2dt*dt ;
+
+/*-------------------------------------------------------------------------
+ * Laplacian
+ *-------------------------------------------------------------------------
+ */
+/*========================================================================
+ * all direction macros go here for safe access
+ *========================================================================
+ */
+#define NORTH   dir0.r
+#define SOUTH   dir0.g
+#define EAST    dir0.b
+#define WEST    dir0.a
+
+#define UP      dir1.r
+#define DOWN    dir1.g
+
+/*========================================================================
+ * packing and unpacking two integers to and from a single unsigned int.
+ *========================================================================
+ */
+#define pack(i,j)   uint((uint(i)<<16)+uint(j))
+#define unpack(I)   ivec2(uint(I)>>16, uint(I) & uint(65535) )
+
+
+
+    #define vlt_txtr    vvxcIn
+    #define vchannel    r
+
+    uvec4 dir0  = texelFetch( idir0 , texelPos,0 ) ;
+    uvec4 dir1  = texelFetch( idir1 , texelPos,0 ) ;
+
+    float  dx = lx/float(mx*my) ;
+    float laplacian = (
+            texelFetch( vlt_txtr, unpack( NORTH ), 0 )
+        +   texelFetch( vlt_txtr, unpack( SOUTH ), 0 )
+        +   texelFetch( vlt_txtr, unpack( EAST  ), 0 )
+        +   texelFetch( vlt_txtr, unpack( WEST  ), 0 )
+        +   texelFetch( vlt_txtr, unpack( UP    ), 0 )
+        +   texelFetch( vlt_txtr, unpack( DOWN  ), 0 )
+        -6.*texelFetch( vlt_txtr, texelPos, 0 )         ).vchannel ;
+    
+    laplacian = laplacian/(dx*dx) ;
+
+
+    float dVlt2dt = laplacian*diffCoef ;
+
+
+//    vec3 cdd = domainResolution/domainSize ;
+//    cdd  *= cdd ;
+//
+//    vec4    nhshMap = texture(nhshMapTxt, pixPos ) ;
+//    vec4    etwtMap = texture(etwtMapTxt, pixPos ) ;
+//    vec4    updnMap = texture(updnMapTxt, pixPos ) ;
+//
+//    vec4    nsewAvg    = texture( nsewAvgTxt, pixPos ) ;
+//    vec4    updnAvg    = texture( updnAvgTxt, pixPos ) ;
+//
+//    float   nGrad = nsewAvg.r*(texture(vvxcIn,nhshMap.xy).r - V) ;
+//    float   sGrad =-nsewAvg.a*(texture(vvxcIn,nhshMap.zw).r - V) ;
+//    float   eGrad = nsewAvg.g*(texture(vvxcIn,etwtMap.xy).r - V) ;
+//    float   wGrad =-nsewAvg.b*(texture(vvxcIn,etwtMap.zw).r - V) ;
+//    float   uGrad = updnAvg.r*(texture(vvxcIn,updnMap.xy).r - V) ;
+//    float   dGrad =-updnAvg.b*(texture(vvxcIn,updnMap.zw).r - V) ;
+//
+//    float dVlt2dt   = (eGrad - wGrad)*cdd.x 
+//                    + (nGrad - sGrad)*cdd.y 
+//                    + (uGrad - dGrad)*cdd.z
+//                    ;
+
+/*------------------------------------------------------------------------
+ * I_sum
+ *------------------------------------------------------------------------
+ */
+    float I_sum =   INa
+                +   Ito
+                +   ICaL 
+                +   ICaNa 
+                +   ICaK 
+                +   IKr 
+                +   IKs 
+                +   IK1 
+                +   INaCa 
+                +   INaK
+                +   INab
+                +   ICab
+                +   IKb
+                +   IpCa
+                ;
+
+/*------------------------------------------------------------------------
+ * Time integration for membrane potential
+ *------------------------------------------------------------------------
+ */
+    dVlt2dt -= I_sum/C_m ;
+    V += dVlt2dt*dt ;
+    vvxcVal.r = V ;
+    vvxcVal.g = (V-minVlt)/(maxVlt-minVlt) ;
+/*------------------------------------------------------------------------
+ * ouputing the shader
+ *------------------------------------------------------------------------
+ */
+    mhjjOut = mhjjVal ;
+    jaiiOut = jaiiVal ;
+    vvxcOut = vvxcVal;
+    ccccOut = ccccVal ;
+    kknnOut = kknnVal ;
+
+    return ;
+}
+</script><!-- end of s2compShader shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='directionator' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * directionator.frag : find North, South, East, West, Up and Down
+ * dirction indices 
+ *
+ * PROGRAMMER   : ABOUZAR KABOUDIAN
+ * DATE         : Sat 06 Mar 2021 21:02:53 (EST)
+ * PLACE        : Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+precision highp int ;
+precision highp float ;
+precision highp sampler2D ;
+precision highp usampler2D ;
+
+/*========================================================================
+ * packing and unpacking two integers to and from a single unsigned int.
+ *========================================================================
+ */
+#define pack(i,j)   uint((uint(i)<<16)+uint(j))
+#define unpack(I)   ivec2(uint(I)>>16, uint(I) & uint(65535) )
+
+/*========================================================================
+ * all direction macros go here for safe access
+ *========================================================================
+ */
+#define NORTH   dir0.r
+#define SOUTH   dir0.g
+#define EAST    dir0.b
+#define WEST    dir0.a
+
+#define UP      dir1.r
+#define DOWN    dir1.g
+
+/*========================================================================
+ * packing and unpacking two integers to and from a single unsigned int.
+ *========================================================================
+ */
+#define pack(i,j)   uint((uint(i)<<16)+uint(j))
+#define unpack(I)   ivec2(uint(I)>>16, uint(I) & uint(65535) )
+
+
+/*-------------------------------------------------------------------------
+ * interfacial variables
+ *-------------------------------------------------------------------------
+ */
+in vec2 cc ;
+
+uniform usampler2D fullTexelIndex, compressedTexelIndex ;
+uniform int mx, my ;
+
+/*------------------------------------------------------------------------
+ * output colors
+ *------------------------------------------------------------------------
+ */
+layout (location = 0) out uvec4 odir0 ;
+layout (location = 1) out uvec4 odir1 ;
+
+/*========================================================================
+ * getIJ: return the IJ index on the full 2d-matrix
+ *========================================================================
+ */
+ivec2 getIJ(ivec3 idx, ivec3 size){
+    int si = idx.z % mx ;
+    int sj = idx.z / mx ;
+
+    return ivec2(size.x*si + idx.x, (my-1-sj)*size.y + idx.y) ;
+}
+
+/*========================================================================
+ * getIdx: get the 3d index from the IJ indices
+ *========================================================================
+ */
+ivec3 getIdx( ivec2 IJ, ivec3 size ){
+    int si = IJ.x / size.x ;
+    int sj = (my - 1) - (IJ.y/size.y) ;
+
+    return ivec3( IJ.x % size.x, IJ.y % size.y , mx*sj + si ) ;
+}
+
+/*========================================================================
+ * macros 
+ *========================================================================
+ */
+#define isInBounds( v )     (all(greaterThanEqual(v,ivec3(0))) && \
+        all(lessThan(v,size)))
+
+#define texelInDomain(I)  ( texelFetch(compressedTexelIndex,(I),\
+            0).a==uint(1) )
+#define inDomain( v )   (texelInDomain( getIJ(v, size) )) 
+#define isNotGood(v)   (!( inDomain(v) && isInBounds( v ) ))
+
+/*========================================================================
+ * getPackedIndex: get packed index of the point by applying the zero-flux
+ * condition.
+ *========================================================================
+ */
+uint getPackedIndex( ivec3 C, ivec3 D, ivec3 size ){
+    ivec3 checkPoint = C+D ;
+    
+    if ( isNotGood(checkPoint) ){ /* if that direction is not good move in
+                                     the opposite direction */
+        checkPoint = C-D ;
+        if ( isNotGood( checkPoint ) ){ /* if the opposite direction is
+                                           not good either, use the
+                                           central point coordinate */
+            checkPoint = C ;
+        }
+    }
+    uvec2 targetIndex = texelFetch(
+            compressedTexelIndex,
+            getIJ(checkPoint,size),
+            0 ).xy ;
+    return pack(targetIndex.x,targetIndex.y) ;  
+}
+
+/*========================================================================
+ * main
+ *========================================================================
+ */
+void main(){
+    // get the sizes of the compressed and the full domain ...............
+    ivec2 compSize = textureSize(fullTexelIndex,        0 ) ;
+    ivec2 fullSize = textureSize(compressedTexelIndex,  0 ) ;
+
+    // calculate the resolution of the full domain .......................
+    ivec3 size = ivec3( fullSize.x/mx , fullSize.y/my, mx*my ) ;
+
+    // get the textel position and full texel index ......................
+    ivec2 texelPos = ivec2( cc*vec2(compSize) ) ; 
+    ivec4 fullTexelIndex = 
+        ivec4( texelFetch(  fullTexelIndex, texelPos, 0) ) ;
+
+    // if the texel is extra, just leave .................................
+    if ( fullTexelIndex.a != 1 ){
+        return ;
+    }
+    
+    // 3-dimentional index of the of texel ...............................
+    ivec3 cidx = getIdx( fullTexelIndex.xy , size ) ;
+
+    // diretionional vectors .............................................
+    ivec3 ii = ivec3(1,0,0) ;
+    ivec3 jj = ivec3(0,1,0) ;
+    ivec3 kk = ivec3(0,0,1) ;
+
+    // calculating the packed indices of the each compute point ..........
+    uvec4 dir0 , dir1 ;
+   
+    NORTH = getPackedIndex( cidx, jj, size) ; // north direction
+    SOUTH = getPackedIndex( cidx,-jj, size) ; // south direction
+    EAST  = getPackedIndex( cidx, ii, size) ; // east  direction
+    WEST  = getPackedIndex( cidx,-ii, size) ; // west  direction
+
+    UP    = getPackedIndex( cidx, kk, size) ; // up   direction
+    DOWN  = getPackedIndex( cidx,-kk, size) ; // down direction
+
+    // outputing the calculated points ...................................
+    odir0 = uvec4(dir0) ;
+    odir1 = uvec4(dir1) ;
+
+    return ;
+}
+</script><!-- end of directionator shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='click' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * click.frag   : Excite the region that is clicked
+ *
+ * PROGRAMMER   : ABOUZAR KABOUDIAN
+ * DATE         : Sun 28 Mar 2021 17:44:32 (EDT)
+ * PLACE        : Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+precision highp int ;
+precision highp float ;
+precision highp sampler2D ;
+precision highp usampler2D ;
+
+
+// interfacial variables .................................................
+in vec2 cc ;
+
+uniform sampler2D   icolor0 ;
+uniform sampler2D   compressed3dCrdt ;
+
+uniform sampler2D   projectedCoordinates ;
+uniform vec2        clickPosition ;
+
+uniform float       clickRadius ;
+
+// output color ..........................................................
+layout (location = 0) out vec4 ocolor0 ;
+
+#define U   color0.r 
+/*========================================================================
+ * main
+ *========================================================================
+ */
+void main(){
+    vec4 color0 = texture( icolor0 , cc ) ;
+    vec3 texelCrdt = texture(compressed3dCrdt, cc ).xyz ;
+    vec3 clickCrdt = texture(projectedCoordinates, clickPosition ).xyz ; 
+
+    if (length(texelCrdt - clickCrdt )<clickRadius ){
+        U = 1. ;
+    }
+
+    ocolor0 = vec4(color0) ;
+    return ;
+}
+</script><!-- end of click shader's source code -->
+
+
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<!-- main script - JavaScript code                                     -->
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<script>
+"use strict" ;
+
+/*========================================================================
+ * get the source code for fragment shaders
+ *========================================================================
+ */
+function source( sid ){
+    return  document.getElementById( sid ).innerHTML.trim() ;
+}
+
+
+
+/*========================================================================
+ * Environment : structure that holds all global variables
+ *========================================================================
+ */
+function Environment(){
+    this.domainSize         = [8,8,8] ;
+   /* Model Parameters         */
+    this.capacitance= 0.185,
+
+    this.C_m        = 1.0 ;
+    this.diffCoef   = 0.001 ;
+
+    this.minVlt     = -100 ;
+    this.maxVlt     = 50. ;
+
+    
+    /* Extra-cellular concenterations */
+    this.Ca_o       = 1.8 ;
+    this.Na_o       = 140 ;
+    this.K_o        = 5.4 ;
+
+    /* Current Multipliers      */
+    this.C_Na       = 1.0 ; 
+    this.C_NaCa     = 1.0 ; 
+    this.C_to       = 1.0 ; 
+    this.C_CaL      = 1.0 ; 
+    this.C_CaNa     = 1.0 ; 
+    this.C_CaK      = 1.0 ; 
+    this.C_Kr       = 1.0 ; 
+    this.C_Ks       = 1.0 ; 
+    this.C_K1       = 1.0 ; 
+    this.C_NaCai    = 1.0 ; 
+    this.C_NaCass   = 1.0 ; 
+    this.C_NaKNa    = 1.0 ; 
+    this.C_NaKK     = 1.0 ; 
+    this.C_NaK      = 1.0 ; 
+    this.C_Nab      = 1.0 ; 
+    this.C_Kb       = 1.0 ; 
+    this.C_Cab      = 1.0 ; 
+    this.C_pCa      = 1.0 ; 
+    this.C_relNP    = 1.0 ; 
+    this.C_relCaMK  = 1.0 ; 
+    this.C_upNP     = 1.0 ; 
+    this.C_upCaMK   = 1.0 ; 
+    this.C_leak     = 1.0 ; 
+    this.C_up       = 1.0 ; 
+    this.C_tr       = 1.0 ; 
+    this.C_rel      = 1.0 ; 
+    this.C_diffCa   = 1.0 ; 
+    this.C_diffNa   = 1.0 ; 
+    this.C_diffK    = 1.0 ; 
+
+    /* Time Factor Multipliers  */
+    this.Ct_m        =   1.0 ; 
+    this.Ct_h        =   1.0 ; 
+    this.Ct_j        =   1.0 ; 
+    this.Ct_hCaMKslow=   1.0 ; 
+    this.Ct_hslow    =   1.0 ; 
+    this.Ct_mL       =   1.0 ; 
+    this.Ct_jCaMK    =   1.0 ; 
+    this.Ct_hL       =   1.0 ; 
+    this.Ct_hLCaMK   =   1.0 ; 
+    this.Ct_a        =   1.0 ; 
+    this.Ct_ifast    =   1.0 ; 
+    this.Ct_islow    =   1.0 ; 
+    this.Ct_aCaMK    =   1.0 ; 
+    this.Ct_iCaMKfast=   1.0 ; 
+    this.Ct_iCaMKslow=   1.0 ; 
+    this.Ct_d        =   1.0 ; 
+    this.Ct_ffast    =   1.0 ; 
+    this.Ct_fslow    =   1.0 ; 
+    this.Ct_fCafast  =   1.0 ; 
+    this.Ct_fCaslow  =   1.0 ; 
+    this.Ct_jCa      =   1.0 ; 
+    this.Ct_fCaMKfast=   1.0 ; 
+    this.Ct_fCaCaMKfast =    1.0 ;
+    this.Ct_n        =   1.0 ; 
+    this.Ct_xrfast   =   1.0 ; 
+    this.Ct_xrslow   =   1.0 ; 
+    this.Ct_xs1      =   1.0 ; 
+    this.Ct_xs2      =   1.0 ; 
+    this.Ct_xk1      =   1.0 ; 
+    this.Ct_relNP    =   1.0 ; 
+    this.Ct_relCaMK  =   1.0 ; 
+    this.Ct_tr       =   1.0 ; 
+    this.Ct_diffCa   =   1.0 ; 
+    this.Ct_diffNa   =   1.0 ; 
+    this.Ct_diffK    =   1.0 ; 
+
+    /* Scaling Factors          */
+    this.EPI         = 0 ;
+    this.ENDO        = 1 ;
+    this.MID         = 2 ;
+    this.cellType    =  this.MID ;
+    this.epiEndoMid  =  'Mid-Myocardium';
+    this.SGNalate    =   1.0 ; 
+    this.SGto        =   1.0 ; 
+    this.SPCa        =   1.0 ; 
+    this.SGKr        =   1.0 ; 
+    this.SGKs        =   1.0 ; 
+    this.SGK1        =   1.0 ; 
+    this.SGNaCa      =   1.0 ; 
+    this.SGNaK       =   1.0 ; 
+    this.SGKb        =   1.0 ; 
+    this.SJrel       =   1.0 ; 
+    this.SJup        =   1.0 ; 
+    this.SCMDN       =   1.0 ; 
+
+    /* Display Parameters       */
+    this.colormap    =   'oygb';
+    this.dispWidth   =   512 ;
+    this.dispHeight  =   512 ;
+    this.frameRate   =   2400 ;
+    this.timeWindow  =   1000 ;
+    this.probeVisiblity = false ;
+
+    this.tiptVisiblity= false ;
+    this.tiptThreshold=  -80.;
+    this.tiptColor    = "#FFFFFF";
+
+    /* Solver Parameters        */
+    this.width       =   512 ;
+    this.height      =   512 ;
+    this.dt          =   1.e-1 ;
+    this.cfl         =   1.0 ;
+    this.ds_x        =   12 ;
+    this.ds_y        =   12 ;
+    this.C_Na        =   1.0 ;
+    this.C_NaCa      =   1.0 ;
+    this.C_to        =   1.0 ;
+    this.C_CaL       =   1.0 ;
+    this.C_Kr        =   1.0 ;
+    this.C_Ks        =   1.0 ;
+    this.C_K1        =   1.0 ;
+    this.C_NaK       =   1.0 ;
+    this.C_bNa       =   1.0 ;
+    this.C_pK        =   1.0 ;
+    this.C_bCa       =   1.0 ;
+    this.C_pCa       =   1.0 ;
+    this.C_leak      =   1.0 ;
+    this.C_up        =   1.0 ;
+    this.C_rel       =   1.0 ;
+    this.C_xfer      =   1.0 ;
+
+    /* Model Parameters         */
+    this.C_m        = 1.0 ;
+    this.diffCoef   = 0.001 ;
+
+    this.dt         = 1.e-1 ;
+    this.time       = 0 ;
+
+    /* Display Parameters       */
+    this.colormap    =   'oygb';
+    this.dispWidth   =   512 ;
+    this.dispHeight  =   512 ;
+    this.frameRate   =   2400 ;
+    this.timeWindow  =   1000 ;
+
+    this.clickRadius = 0.1 ;
+    this.alphaCorrection = 0.24 ;
+    this.structural_alpha = 1.0 ;
+    this.noSteps    = 120 ;
+    this.lightShift = 1.2 ;
+
+    this.running    = false ;
+    this.solve      = function(){
+        this.running = !this.running ;
+    }
+}
+var env = new Environment() ;
+var params = env ;
+var gui ;
+
+/*========================================================================
+ * import surface data
+ *========================================================================
+ */
+let loadedJSON ;
+/*=========================================================================
+ * blinkText
+ *=========================================================================
+ */
+//function blinkText(){
+//    $('.blink').fadeOut(500) ;
+//    $('.blink').fadeIn(500) ;
+//}
+//setInterval(blinkText, 1000) ;
+
+/*========================================================================
+ * let the user select the file
+ *========================================================================
+ */
+//var fileInput = document.getElementById('json_structure') ;
+//
+//fileInput.onchange = function(){
+//  let file = fileInput.files[0] ;
+//  if ( !file ){
+//      return ;
+//  }
+//  let reader = new FileReader() ;
+//  reader.readAsText(file) ;
+//
+//  reader.onload = function(e){
+//      let result = e.target.result ;
+//      loadedJSON = JSON.parse(result) ;
+//      $('#chooser').hide() ;
+//      $('.loaded').show() ;
+//      loadWebGL() ;
+//  } ;
+//}
+
+/*========================================================================
+ * read from file on the server
+ *========================================================================
+ */
+let structureFile = new XMLHttpRequest();
+
+structureFile.onreadystatechange = () => {
+    if (structureFile.readyState == 4 && structureFile.status == 200) {
+        loadedJSON = JSON.parse(structureFile.responseText);
+        console.log(loadedJSON) ;
+        loadWebGL() ;
+    }
+};
+structureFile.open("GET", "jsons/structure_pig_192x192x192.json", true);
+structureFile.send();
+var gl = Abubu.gl ;
+
+/*========================================================================
+ * loadWebGL : entry point for the WebGL application
+ *========================================================================
+ */
+function loadWebGL(){
+    env.skip = 10 ;
+    env.allFloats = [] ;
+    env.allInts   = [] ;
+    env.allTxtrs  = [] ;
+
+/*------------------------------------------------------------------------
+ * display parameters
+ *------------------------------------------------------------------------
+ */
+    env.colormap    = 'rainbowHotSpring' ;
+    env.dispWidth   = 512 ;
+    env.dispHeight  = 512 ;
+
+    env.canvas_1 = document.getElementById("canvas_1") ;
+    env.canvas_2 = document.getElementById("canvas_2") ;
+    env.canvas_1.width  = env.dispWidth ;
+    env.canvas_1.height = env.dispHeight ;
+
+/*------------------------------------------------------------------------
+ * load the structure and process it
+ *------------------------------------------------------------------------
+ */
+    env.mx = loadedJSON.mx ; env.my = loadedJSON.my ;
+    env.allInts = [...env.allInts, 'mx','my' ] ;
+
+    env.structure = new Abubu.StructureFromJSON( loadedJSON ) ;
+
+    env.width                   = env.structure.width ;
+    env.height                  = env.structure.height ;
+    env.fwidth                  = env.structure.fwidth ; 
+    env.fheight                 = env.structure.fheight ;
+
+    env.fullTexelIndex          = env.structure.fullTexelIndex ;
+    env.compressedTexelIndex    = env.structure.compressedTexelIndex ;
+    env.full3dCrdt              = env.structure.full3dCrdt ;
+    env.compressed3dCrdt        = env.structure.compressed3dCrdt ;
+    env.normals                 = env.structure.normals ;
+
+    env.loaded = true ;
+
+    env.allTxtrs = [...env.allTxtrs, 'compressed3dCrdt' ] ;  
+    
+/*------------------------------------------------------------------------
+ * zero-flux directionator 
+ *------------------------------------------------------------------------
+ */
+    env.dir0 = new Abubu.Uint32Texture( env.width, env.height ) ;
+    env.dir1 = new Abubu.Uint32Texture( env.width, env.height ) ;
+
+    env.idir0 = env.dir0 ;
+    env.idir1 = env.dir1 ;
+
+    env.directionator = new Abubu.Solver({
+        fragmentShader : source('directionator') ,
+        uniforms : {
+            mx : { type : 'i' , value : env.mx } ,
+            my : { type : 'i' , value : env.my } ,
+            fullTexelIndex : { 
+                type : 't', value : env.fullTexelIndex 
+            } ,
+            compressedTexelIndex : { 
+                type : 't', value : env.compressedTexelIndex
+            } ,
+        },
+        targets: {
+            odir0 : { location : 0, target : env.dir0 } ,
+            odir1 : { location : 1, target : env.dir1 } ,
+        }
+    } ) ;
+    env.directionator.render() ; 
+
+    env.allTxtrs = [...env.allTxtrs, 'idir0', 'idir1' ] ;
+/*------------------------------------------------------------------------
+ * stats
+ *------------------------------------------------------------------------
+ */
+
+/*------------------------------------------------------------------------
+ * defining all render targets
+ *------------------------------------------------------------------------
+ */
+    env.fmhjj   = new Abubu.FloatRenderTarget(env.width, env.height) ;
+    env.fjaii   = new Abubu.FloatRenderTarget(env.width, env.height) ;
+    env.faiid   = new Abubu.FloatRenderTarget(env.width, env.height) ;
+    env.fffff   = new Abubu.FloatRenderTarget(env.width, env.height) ;
+    env.fjffn   = new Abubu.FloatRenderTarget(env.width, env.height) ;
+    env.fxxxx   = new Abubu.FloatRenderTarget(env.width, env.height) ;
+    env.fvvxc   = new Abubu.FloatRenderTarget(env.width, env.height) ;
+    env.fcccc   = new Abubu.FloatRenderTarget(env.width, env.height) ;
+    env.fkknn   = new Abubu.FloatRenderTarget(env.width, env.height) ;
+
+    env.smhjj   = new Abubu.FloatRenderTarget(env.width, env.height) ;
+    env.sjaii   = new Abubu.FloatRenderTarget(env.width, env.height) ;
+    env.saiid   = new Abubu.FloatRenderTarget(env.width, env.height) ;
+    env.sffff   = new Abubu.FloatRenderTarget(env.width, env.height) ;
+    env.sjffn   = new Abubu.FloatRenderTarget(env.width, env.height) ;
+    env.sxxxx   = new Abubu.FloatRenderTarget(env.width, env.height) ;
+    env.svvxc   = new Abubu.FloatRenderTarget(env.width, env.height) ;
+    env.scccc   = new Abubu.FloatRenderTarget(env.width, env.height) ;
+    env.skknn   = new Abubu.FloatRenderTarget(env.width, env.height) ;
+
+/*------------------------------------------------------------------------
+ * s1 and s2 Targets
+ *------------------------------------------------------------------------
+ */
+    env.s1Targets = function(   
+            _aiid,
+            _ffff,                  
+            _jffn,  
+            _xxxx   ){
+        this.aiidOut = { location : 0, target : _aiid } ;
+        this.ffffOut = { location : 1, target : _ffff } ;
+        this.jffnOut = { location : 2, target : _jffn } ;
+        this.xxxxOut = { location : 3, target : _xxxx } ;
+    } ;
+    env.s2Targets = function(   
+            _mhjj,  
+            _jaii,                
+            _vvxc, 
+            _cccc,                
+            _kknn ){
+        this.mhjjOut = { location : 0, target : _mhjj } ;
+        this.jaiiOut = { location : 1, target : _jaii } ;
+        this.vvxcOut = { location : 2, target : _vvxc } ;
+        this.ccccOut = { location : 3, target : _cccc } ;
+        this.kknnOut = { location : 4, target : _kknn } ;
+    } ;
+
+/*------------------------------------------------------------------------
+ * s1init
+ *------------------------------------------------------------------------
+ */
+    env.fs1init  = new Abubu.Solver( {
+       fragmentShader  :   source('s1initShader'),
+       renderTargets   : new env.s1Targets( env.faiid, env.fffff ,
+                                            env.fjffn, env.fxxxx  ) ,
+    } ) ;
+    env.ss1init  = new Abubu.Solver( {
+       fragmentShader  :   source('s1initShader'),
+       renderTargets   : new env.s1Targets( env.saiid, env.sffff ,
+                                            env.sjffn, env.sxxxx  ) ,
+    } ) ;
+
+/*------------------------------------------------------------------------
+ * s2init
+ *------------------------------------------------------------------------
+ */
+    env.s2initUniforms = function(){
+        this.minVlt = { type : 'f', value : env.minVlt } ;
+        this.maxVlt = { type : 'f', value : env.maxVlt } ;
+    }
+    env.fs2init = new Abubu.Solver({
+        fragmentShader  :   source('s2initShader'),
+        uniforms        :   new env.s2initUniforms() ,
+        renderTargets   :   new env.s2Targets(
+                                env.fmhjj ,
+                                env.fjaii ,
+                                env.fvvxc ,
+                                env.fcccc ,
+                                env.fkknn   ) ,
+    } ) ;
+    env.ss2init = new Abubu.Solver({
+        fragmentShader  :   source('s2initShader'),
+        uniforms        :   new env.s2initUniforms() ,
+        renderTargets   :   new env.s2Targets(
+                                env.smhjj ,
+                                env.sjaii ,
+                                env.svvxc ,
+                                env.scccc ,
+                                env.skknn   ) ,
+    } ) ;
+
+    env.initialize = function(){
+        env.fs1init.render() ;
+        env.ss1init.render() ;
+        env.fs2init.render() ;
+        env.ss2init.render() ;
+    } ;
+/*------------------------------------------------------------------------
+ * s1comp
+ *------------------------------------------------------------------------
+ */
+   env.s1compUniforms = function(  
+            _aiid, 
+            _ffff,  
+            _jffn,  
+            _xxxx, 
+            _mhjj,  
+            _jaii,
+            _vvxc, 
+            _cccc,  
+            _kknn ){
+
+        /* other            */
+        this.dt             = { type : 'f', value : env.dt          } ;
+        
+        /* input variable textures */
+        this.aiidIn         = { type : 't', value : _aiid           } ;
+        this.ffffIn         = { type : 't', value : _ffff           } ;
+        this.jffnIn         = { type : 't', value : _jffn           } ;
+        this.xxxxIn         = { type : 't', value : _xxxx           } ;
+        this.mhjjIn         = { type : 't', value : _mhjj           } ;
+        this.jaiiIn         = { type : 't', value : _jaii           } ;
+        this.vvxcIn         = { type : 't', value : _vvxc           } ;
+        this.ccccIn         = { type : 't', value : _cccc           } ;
+        this.kknnIn         = { type : 't', value : _kknn           } ;
+
+        /* Time Factor Multipliers  */
+        this.Ct_m           = { type : 'f', value : env.Ct_m        } ; 
+        this.Ct_h           = { type : 'f', value : env.Ct_h        } ; 
+        this.Ct_j           = { type : 'f', value : env.Ct_j        } ; 
+        this.Ct_hCaMKslow   = { type : 'f', value : env.Ct_hCaMKslow} ; 
+        this.Ct_hslow       = { type : 'f', value : env.Ct_hslow    } ; 
+        this.Ct_mL          = { type : 'f', value : env.Ct_mL       } ; 
+        this.Ct_jCaMK       = { type : 'f', value : env.Ct_jCaMK    } ; 
+        this.Ct_hL          = { type : 'f', value : env.Ct_hL       } ; 
+        this.Ct_hLCaMK      = { type : 'f', value : env.Ct_hLCaMK   } ; 
+        this.Ct_a           = { type : 'f', value : env.Ct_a        } ; 
+        this.Ct_ifast       = { type : 'f', value : env.Ct_ifast    } ; 
+        this.Ct_islow       = { type : 'f', value : env.Ct_islow    } ; 
+        this.Ct_aCaMK       = { type : 'f', value : env.Ct_aCaMK    } ; 
+        this.Ct_iCaMKfast   = { type : 'f', value : env.Ct_iCaMKfast} ; 
+        this.Ct_iCaMKslow   = { type : 'f', value : env.Ct_iCaMKslow} ; 
+        this.Ct_d           = { type : 'f', value : env.Ct_d        } ; 
+        this.Ct_ffast       = { type : 'f', value : env.Ct_ffast    } ; 
+        this.Ct_fslow       = { type : 'f', value : env.Ct_fslow    } ; 
+        this.Ct_fCafast     = { type : 'f', value : env.Ct_fCafast  } ; 
+        this.Ct_fCaslow     = { type : 'f', value : env.Ct_fCaslow  } ; 
+        this.Ct_jCa         = { type : 'f', value : env.Ct_jCa      } ; 
+        this.Ct_fCaMKfast   = { type : 'f', value : env.Ct_fCaMKfast} ; 
+        this.Ct_fCaCaMKfast = { type : 'f', value : env.Ct_fCaCaMKfast } ;
+        this.Ct_n           = { type : 'f', value : env.Ct_n        } ; 
+        this.Ct_xrfast      = { type : 'f', value : env.Ct_xrfast   } ; 
+        this.Ct_xrslow      = { type : 'f', value : env.Ct_xrslow   } ; 
+        this.Ct_xs1         = { type : 'f', value : env.Ct_xs1      } ; 
+        this.Ct_xs2         = { type : 'f', value : env.Ct_xs2      } ; 
+        this.Ct_xk1         = { type : 'f', value : env.Ct_xk1      } ; 
+        this.Ct_relNP       = { type : 'f', value : env.Ct_relNP    } ; 
+        this.Ct_relCaMK     = { type : 'f', value : env.Ct_relCaMK  } ; 
+        this.Ct_tr          = { type : 'f', value : env.Ct_tr       } ; 
+        this.Ct_diffCa      = { type : 'f', value : env.Ct_diffCa   } ; 
+        this.Ct_diffNa      = { type : 'f', value : env.Ct_diffNa   } ; 
+        this.Ct_diffK       = { type : 'f', value : env.Ct_diffK    } ; 
+
+        /* Scaling Factors          */
+        this.SGNalate       = { type : 'f', value : env.SGNalate    } ; 
+        this.SGto           = { type : 'f', value : env.SGto        } ; 
+        this.SPCa           = { type : 'f', value : env.SPCa        } ; 
+        this.SGKr           = { type : 'f', value : env.SGKr        } ; 
+        this.SGKs           = { type : 'f', value : env.SGKs        } ; 
+        this.SGK1           = { type : 'f', value : env.SGK1        } ; 
+        this.SGNaCa         = { type : 'f', value : env.SGNaCa      } ; 
+        this.SGNaK          = { type : 'f', value : env.SGNaK       } ; 
+        this.SGKb           = { type : 'f', value : env.SGKb        } ; 
+        this.SJrel          = { type : 'f', value : env.SJrel       } ; 
+        this.SJup           = { type : 'f', value : env.SJup        } ; 
+        this.SCMDN          = { type : 'f', value : env.SCMDN       } ; 
+    }
+
+    /* s1comp1  */
+    env.s1comp1 = new Abubu.Solver({
+        fragmentShader  :   source('s1compShader') ,
+        uniforms        : 
+            new env.s1compUniforms(
+                env.faiid,  env.fffff,  env.fjffn,  
+                env.fxxxx,  env.fmhjj,  env.fjaii,
+                env.fvvxc,  env.fcccc,  env.fkknn       ) ,
+        renderTargets   : 
+            new env.s1Targets(
+                env.saiid, 
+                env.sffff,  
+                env.sjffn,  
+                env.sxxxx       ) ,
+    } ) ;
+
+    /* s1comp1  */
+    env.s1comp2 = new Abubu.Solver({
+        fragmentShader  :   source('s1compShader') ,
+        uniforms        : 
+            new env.s1compUniforms(
+                env.saiid,  env.sffff,  env.sjffn,  
+                env.sxxxx,  env.smhjj,  env.sjaii,
+                env.svvxc,  env.scccc,  env.skknn       ) ,
+        renderTargets   : 
+            new env.s1Targets(
+                env.faiid,  
+                env.fffff,  
+                env.fjffn,  
+                env.fxxxx       ) ,
+    } ) ;
+
+/*------------------------------------------------------------------------
+ * s2comp1 and s2comp2 solvers for time stepping
+ *------------------------------------------------------------------------
+ */
+    env.s2compUniforms = function( 
+            _aiid, 
+            _ffff,  
+            _jffn,  
+            _xxxx, 
+            _mhjj,  
+            _jaii,
+            _vvxc, 
+            _cccc,  
+            _kknn ){
+        /* input variable textures */
+        this.mhjjIn         = { type : 't', value : _mhjj           } ;
+        this.jaiiIn         = { type : 't', value : _jaii           } ;
+        this.aiidIn         = { type : 't', value : _aiid           } ;
+        this.ffffIn         = { type : 't', value : _ffff           } ;
+        this.jffnIn         = { type : 't', value : _jffn           } ;
+        this.xxxxIn         = { type : 't', value : _xxxx           } ;
+        this.vvxcIn         = { type : 't', value : _vvxc           } ;
+        this.ccccIn         = { type : 't', value : _cccc           } ;
+        this.kknnIn         = { type : 't', value : _kknn           } ;
+
+        /* other            */
+        this.idir0          = { type : 't', value : env.idir0       } ;
+        this.idir1          = { type : 't', value : env.idir1       } ;
+        this.compressed3dCrdt = { type : 't', 
+            value : env.compressed3dCrdt }  ;
+        this.mx = { type : 'i',  value : env.mx } ;
+        this.my = { type : 'i',  value : env.my } ;
+        
+        this.Ca_o           = { type : 'f', value : env.Ca_o        } ;
+        this.K_o            = { type : 'f', value : env.K_o         } ;
+        this.Na_o           = { type : 'f', value : env.Na_o        } ;
+
+        this.dt             = { type : 'f', value : env.dt          } ;
+        this.diffCoef       = { type : 'f', value : env.diffCoef    } ;
+        this.C_m            = { type : 'f', value : env.C_m         } ;
+        this.minVlt         = { type : 'f', value : env.minVlt      } ;
+        this.maxVlt         = { type : 'f', value : env.maxVlt      } ;
+
+        /* Time Factor Multipliers  */
+        this.Ct_m           = { type : 'f', value : env.Ct_m        } ; 
+        this.Ct_h           = { type : 'f', value : env.Ct_h        } ; 
+        this.Ct_j           = { type : 'f', value : env.Ct_j        } ; 
+        this.Ct_hCaMKslow   = { type : 'f', value : env.Ct_hCaMKslow} ; 
+        this.Ct_hslow       = { type : 'f', value : env.Ct_hslow    } ; 
+        this.Ct_mL          = { type : 'f', value : env.Ct_mL       } ; 
+        this.Ct_jCaMK       = { type : 'f', value : env.Ct_jCaMK    } ; 
+        this.Ct_hL          = { type : 'f', value : env.Ct_hL       } ; 
+        this.Ct_hLCaMK      = { type : 'f', value : env.Ct_hLCaMK   } ; 
+        this.Ct_a           = { type : 'f', value : env.Ct_a        } ; 
+        this.Ct_ifast       = { type : 'f', value : env.Ct_ifast    } ; 
+        this.Ct_islow       = { type : 'f', value : env.Ct_islow    } ; 
+        this.Ct_aCaMK       = { type : 'f', value : env.Ct_aCaMK    } ; 
+        this.Ct_iCaMKfast   = { type : 'f', value : env.Ct_iCaMKfast} ; 
+        this.Ct_iCaMKslow   = { type : 'f', value : env.Ct_iCaMKslow} ; 
+        this.Ct_d           = { type : 'f', value : env.Ct_d        } ; 
+        this.Ct_ffast       = { type : 'f', value : env.Ct_ffast    } ; 
+        this.Ct_fslow       = { type : 'f', value : env.Ct_fslow    } ; 
+        this.Ct_fCafast     = { type : 'f', value : env.Ct_fCafast  } ; 
+        this.Ct_fCaslow     = { type : 'f', value : env.Ct_fCaslow  } ; 
+        this.Ct_jCa         = { type : 'f', value : env.Ct_jCa      } ; 
+        this.Ct_fCaMKfast   = { type : 'f', value : env.Ct_fCaMKfast} ; 
+        this.Ct_fCaCaMKfast = { type : 'f', value : env.Ct_fCaCaMKfast } ;
+        this.Ct_n           = { type : 'f', value : env.Ct_n        } ; 
+        this.Ct_xrfast      = { type : 'f', value : env.Ct_xrfast   } ; 
+        this.Ct_xrslow      = { type : 'f', value : env.Ct_xrslow   } ; 
+        this.Ct_xs1         = { type : 'f', value : env.Ct_xs1      } ; 
+        this.Ct_xs2         = { type : 'f', value : env.Ct_xs2      } ; 
+        this.Ct_xk1         = { type : 'f', value : env.Ct_xk1      } ; 
+        this.Ct_relNP       = { type : 'f', value : env.Ct_relNP    } ; 
+        this.Ct_relCaMK     = { type : 'f', value : env.Ct_relCaMK  } ; 
+        this.Ct_tr          = { type : 'f', value : env.Ct_tr       } ; 
+        this.Ct_diffCa      = { type : 'f', value : env.Ct_diffCa   } ; 
+        this.Ct_diffNa      = { type : 'f', value : env.Ct_diffNa   } ; 
+        this.Ct_diffK       = { type : 'f', value : env.Ct_diffK    } ; 
+
+        /* current multipliers */
+        this.C_Na           = { type : 'f', value : env.C_Na        } ; 
+        this.C_NaCa         = { type : 'f', value : env.C_NaCa      } ; 
+        this.C_to           = { type : 'f', value : env.C_to        } ; 
+        this.C_CaL          = { type : 'f', value : env.C_CaL       } ; 
+        this.C_CaNa         = { type : 'f', value : env.C_CaNa      } ; 
+        this.C_CaK          = { type : 'f', value : env.C_CaK       } ; 
+        this.C_Kr           = { type : 'f', value : env.C_Kr        } ; 
+        this.C_Ks           = { type : 'f', value : env.C_Ks        } ; 
+        this.C_K1           = { type : 'f', value : env.C_K1        } ; 
+        this.C_NaCai        = { type : 'f', value : env.C_NaCai     } ; 
+        this.C_NaCass       = { type : 'f', value : env.C_NaCass    } ; 
+        this.C_NaKNa        = { type : 'f', value : env.C_NaKNa     } ; 
+        this.C_NaKK         = { type : 'f', value : env.C_NaKK      } ; 
+        this.C_NaK          = { type : 'f', value : env.C_NaK       } ; 
+        this.C_Nab          = { type : 'f', value : env.C_Nab       } ; 
+        this.C_Kb           = { type : 'f', value : env.C_Kb        } ; 
+        this.C_Cab          = { type : 'f', value : env.C_Cab       } ; 
+        this.C_pCa          = { type : 'f', value : env.C_pCa       } ; 
+        this.C_relNP        = { type : 'f', value : env.C_relNP     } ; 
+        this.C_relCaMK      = { type : 'f', value : env.C_relCaMK   } ; 
+        this.C_upNP         = { type : 'f', value : env.C_upNP      } ; 
+        this.C_upCaMK       = { type : 'f', value : env.C_upCaMK    } ; 
+        this.C_leak         = { type : 'f', value : env.C_leak      } ; 
+        this.C_up           = { type : 'f', value : env.C_up        } ; 
+        this.C_tr           = { type : 'f', value : env.C_tr        } ; 
+        this.C_rel          = { type : 'f', value : env.C_rel       } ; 
+        this.C_diffCa       = { type : 'f', value : env.C_diffCa    } ; 
+        this.C_diffNa       = { type : 'f', value : env.C_diffNa    } ; 
+        this.C_diffK        = { type : 'f', value : env.C_diffK     } ; 
+
+        /* Scaling Factors          */
+        this.SGNalate       = { type : 'f', value : env.SGNalate    } ; 
+        this.SGto           = { type : 'f', value : env.SGto        } ; 
+        this.SPCa           = { type : 'f', value : env.SPCa        } ; 
+        this.SGKr           = { type : 'f', value : env.SGKr        } ; 
+        this.SGKs           = { type : 'f', value : env.SGKs        } ; 
+        this.SGK1           = { type : 'f', value : env.SGK1        } ; 
+        this.SGNaCa         = { type : 'f', value : env.SGNaCa      } ; 
+        this.SGNaK          = { type : 'f', value : env.SGNaK       } ; 
+        this.SGKb           = { type : 'f', value : env.SGKb        } ; 
+        this.SJrel          = { type : 'f', value : env.SJrel       } ; 
+        this.SJup           = { type : 'f', value : env.SJup        } ; 
+        this.SCMDN          = { type : 'f', value : env.SCMDN       } ; 
+
+        this.cellType       = { type : 'i', value : env.cellType    } ;
+    }
+    /* s2comp1  */
+    env.s2comp1 = new Abubu.Solver({
+        fragmentShader  :   source('s2compShader') ,
+        uniforms        : 
+            new env.s2compUniforms(
+                env.saiid,  
+                env.sffff,  
+                env.sjffn,  
+                env.sxxxx,  
+                env.fmhjj,  
+                env.fjaii,
+                env.fvvxc,  
+                env.fcccc,  
+                env.fkknn       ) ,
+        renderTargets   : 
+            new env.s2Targets(
+                env.smhjj,  
+                env.sjaii ,
+                env.svvxc,  
+                env.scccc,  
+                env.skknn       ) , 
+    } ) ;
+
+    env.s2comp2 = new Abubu.Solver({
+        fragmentShader  :   source('s2compShader'),
+        uniforms        : 
+            new env.s2compUniforms(
+                env.faiid,  
+                env.fffff,  
+                env.fjffn,  
+                env.fxxxx,  
+                env.smhjj,  
+                env.sjaii,
+                env.svvxc,  
+                env.scccc,  
+                env.skknn       ) ,
+        renderTargets   : 
+            new env.s2Targets(
+                env.fmhjj,  
+                env.fjaii ,
+                env.fvvxc,  
+                env.fcccc,  
+                env.fkknn       ) , 
+    } ) ;
+
+/*========================================================================
+ * Postprocessing 
+ *========================================================================
+ */
+    env.visurf = new Abubu.SurfaceVisualizer({
+        canvas : canvas_1 ,
+        target : env.fvvxc ,
+        structure : env.structure ,
+        fovy : 0.45,
+        rotation : [1.76,3.25,-1.25] ,
+        lightDirection : [ 0.6,0.25,-2.06] ,
+        lightSpecularTerm : 0.5, 
+        lightAmbientTerm : 0.1, 
+        materialSpecularTerm : 5.2 ,
+        materialAmbientTerm : 0.1 ,
+        shininess : 10 ,
+        minValue : -60 ,
+        maxValue : 20 ,
+    } ) ;
+
+    // signal plots
+    env.plot = new Abubu.SignalPlot( { 
+        noPltPoints : 512 ,
+        grid    : 'on',
+        nx : 5,
+        ny : 10,
+        xticks : { mode : 'auto', unit : 'ms', font:'11pt Times'} ,
+        yticks : { mode : 'auto', unit : 'mv' } ,
+        canvas : canvas_2 ,
+        } ) ;
+    env.vsgn = env.plot.addSignal( env.fvvxc, {
+            channel : 'r',
+            minValue : -100 ,
+            maxValue : 50 ,
+            restValue: -83,
+            color : [0.5,0,0],
+            visible: true,
+            linewidth : 3,
+            timeWindow: env.timeWindow,
+            probePosition : [0.5,0.5] , } ) ;
+
+    env.plot.init(0) ;
+    env.plot.render() ;
+
+/*------------------------------------------------------------------------
+ * click
+ *------------------------------------------------------------------------
+ */
+    env.click = new Abubu.Solver({
+        fragmentShader : source( 'click' ) ,
+        uniforms : {
+            icolor0 : { type : 't', value : env.fvvxc } ,
+            compressed3dCrdt : { type : 't', 
+                value : env.structure.compressed3dCrdt            } ,
+            projectedCoordinates : { type : 't', 
+                value : env.visurf.projectedCoordinates  } ,
+            clickPosition : { type : 'v2', value : [0.,0] } ,
+            clickRadius     : { type : 'f', value : 0.1 } ,
+        } ,
+        targets : {
+            ocolor0 : { location : 0 , target : env.svvxc } ,
+        }
+    } ) ;
+
+    env.clickCopy = new Abubu.Copy( env.svvxc, env.fvvxc ) ;
+    
+    env.cmndClick = new Abubu.CommandClickListener(
+        canvas_1 , (e) =>{
+            env.click.uniforms.clickPosition.value = e.position ;
+            env.click.render() ;
+            env.clickCopy.render() ;
+        } , { mousemove : true  } 
+    ) ;
+
+    env.cntrlClick = new Abubu.CtrlClickListener(
+        canvas_1 , (e) =>{
+            env.click.uniforms.clickPosition.value = e.position ;
+            env.click.render() ;
+            env.clickCopy.render() ;
+        } , { mousemove : true  } 
+    ) ;
+
+    
+    env.shiftClick = new Abubu.ShiftClickListener(
+        canvas_1,
+        (e)=>{
+            var clickCompPosition = 
+            env.visurf.getCompressedClickPosition(e.position);
+            env.plot.setProbePosition( clickCompPosition ) ;
+            env.plot.init(env.time) ;
+        } ) ;
+
+    
+/*========================================================================
+ * render
+ *========================================================================
+ */
+
+    env.render = function(){
+        if (env.running){
+            for(var i=0; i< env.skip ; i++){
+                env.s1comp1.render() ;
+                env.s2comp1.render() ;
+                env.s1comp2.render() ;
+                env.s2comp2.render() ;
+                env.time += env.dt*2.0 ;
+                env.plot.update(env.time) ;
+            }
+        }
+        env.visurf.render() ;
+        env.plot.render() ;
+        requestAnimationFrame(env.render) ;
+    }
+    createGui() ;
+    env.initialize() ;
+    env.render() ;
+}
+
+
+/*========================================================================
+ * createGui()
+ *========================================================================
+ */ 
+function createGui(){
+    env.gui = new Abubu.Gui() ;
+    gui = env.gui.addPanel({width:300}) ;
+
+/*-------------------------------------------------------------------------
+ * Model Parameters
+ *-------------------------------------------------------------------------
+ */
+    gui.mdlPrmFldr  =   gui.addFolder( 'Model Parameters'   ) ;
+    gui.mdlPrmFldr.add( env, 'epiEndoMid', 
+                [
+                    'Endocardium', 
+                    'Epicardium', 
+                    'Mid-Myocardium'    ] )
+        .name(  'Cell Type'  ).onChange(function(){
+            switch( env.epiEndoMyo ){
+                case 'Endocardium' :
+                    env[ 'SGNalate'      ] = 1.0 ;
+                    env[ 'SGto'          ] = 1.0 ;
+                    env[ 'SPCa'          ] = 1.0 ;
+                    env[ 'SGKr'          ] = 1.0 ;
+                    env[ 'SGKs'          ] = 1.0 ;
+                    env[ 'SGK1'          ] = 1.0 ;
+                    env[ 'SGNaCa'        ] = 1.0 ;
+                    env[ 'SGNaK'         ] = 1.0 ;
+                    env[ 'SGKb'          ] = 1.0 ;
+                    env[ 'SJrel'         ] = 1.0 ;
+                    env[ 'SJup'          ] = 1.0 ;
+                    env[ 'SCMDN'         ] = 1.0 ;
+                    env.cellType = env.ENDO ;
+                    env.breakTime = 270 ;
+
+                    break ;
+                case  'Epicardium' :
+                    env[ 'SGNalate'      ] = 0.6 ;
+                    env[ 'SGto'          ] = 4.0 ;
+                    env[ 'SPCa'          ] = 1.2 ;
+                    env[ 'SGKr'          ] = 1.3 ;
+                    env[ 'SGKs'          ] = 1.4 ;
+                    env[ 'SGK1'          ] = 1.2 ;
+                    env[ 'SGNaCa'        ] = 1.1 ;
+                    env[ 'SGNaK'         ] = 0.9 ;
+                    env[ 'SGKb'          ] = 0.6 ;
+                    env[ 'SJrel'         ] = 1.0 ;
+                    env[ 'SJup'          ] = 1.3 ;
+                    env[ 'SCMDN'         ] = 1.3 ;
+                    
+                    env.cellType    = env.EPI ;
+                    env.breakTime   = 270 ;
+
+                    break ;
+                case    'Mid-Myocardium'    :
+                    env[ 'SGNalate'      ] = 1.0 ;
+                    env[ 'SGto'          ] = 4.0 ;
+                    env[ 'SPCa'          ] = 2.5 ;
+                    env[ 'SGKr'          ] = 0.8 ;
+                    env[ 'SGKs'          ] = 1.0 ;
+                    env[ 'SGK1'          ] = 1.3 ;
+                    env[ 'SGNaCa'        ] = 1.5 ;
+                    env[ 'SGNaK'         ] = 0.7 ;
+                    env[ 'SGKb'          ] = 1.0 ;
+                    env[ 'SJrel'         ] = 1.7 ;
+                    env[ 'SJup'          ] = 1.0 ;
+                    env[ 'SCMDN'         ] = 1.0 ;
+                    env.breakTime = 373 ;
+                    env.cellType = env.MID ;
+
+                    break ;
+            }
+            Abubu.setUniformsInSolvers(
+            [   'cellType'                  ] ,
+            [   env.cellType                ] ,
+            [   env.s2comp1, env.s2comp2    ] ) ;
+            Abubu.setUniformsInSolvers(
+            [
+            'SGNalate' ,
+            'SGto'     ,
+            'SPCa'     ,
+            'SGKr'     ,
+            'SGKs'     ,
+            'SGK1'     ,
+            'SGNaCa'   ,
+            'SGNaK'    ,
+            'SGKb'     ,
+            'SJrel'    ,
+            'SJup'     ,
+            'SCMDN'
+            ] ,
+            [
+            env.SGNalate ,
+            env.SGto     ,
+            env.SPCa     ,
+            env.SGKr     ,
+            env.SGKs     ,
+            env.SGK1     ,
+            env.SGNaCa   ,
+            env.SGNaK    ,
+            env.SGKb     ,
+            env.SJrel    ,
+            env.SJup     ,
+            env.SCMDN
+            ] ,
+            [
+                env.s1comp1,
+            env.s1comp2,
+            env.s2comp1,
+            env.s2comp2
+            ]   ) ;
+        } ) ;
+
+    addCoeficients( gui.mdlPrmFldr, ['C_m', 'diffCoef'] , 
+            [env.s2comp1,env.s2comp2], {min:0}) ;
+
+/*------------------------------------------------------------------------
+ * Time Coeficients
+ *------------------------------------------------------------------------
+ */
+    gui.tcfPrmFldr = gui.addFolder( 'Time Coeficients' ) ;
+    addCoeficients( 
+        gui.tcfPrmFldr, [
+            'Ct_m'        , 
+            'Ct_h'        , 
+            'Ct_j'        , 
+            'Ct_hCaMKslow', 
+            'Ct_hslow'    , 
+            'Ct_mL'       , 
+            'Ct_jCaMK'    , 
+            'Ct_hL'       , 
+            'Ct_hLCaMK'   , 
+            'Ct_a'        , 
+            'Ct_ifast'    , 
+            'Ct_islow'    , 
+            'Ct_aCaMK'    , 
+            'Ct_iCaMKfast', 
+            'Ct_iCaMKslow', 
+            'Ct_d'        , 
+            'Ct_ffast'    , 
+            'Ct_fslow'    , 
+            'Ct_fCafast'  , 
+            'Ct_fCaslow'  , 
+            'Ct_jCa'      , 
+            'Ct_fCaMKfast', 
+            'Ct_fCaCaMKfast' ,
+            'Ct_n'        ,
+            'Ct_xrfast'   ,
+            'Ct_xrslow'   ,
+            'Ct_xs1'      ,
+            'Ct_xs2'      ,
+            'Ct_xk1'      ,
+            'Ct_relNP'    ,
+            'Ct_relCaMK'  ,
+            'Ct_tr'       ,
+            'Ct_diffCa'   ,
+            'Ct_diffNa'   ,
+            'Ct_diffK'    ,
+        ] ,
+        [ 
+            env.s1comp1, 
+            env.s1comp2, 
+            env.s2comp1, 
+            env.s2comp2 
+        ] ) ;
+
+/*------------------------------------------------------------------------
+ * Current Multipliers
+ *------------------------------------------------------------------------
+ */
+    gui.crtPrmFldr = gui.addFolder( 'Current Multipliers' ) ;
+    addCoeficients(
+        gui.crtPrmFldr ,
+        [
+            'C_Na'       , 
+            'C_NaCa'     , 
+            'C_to'       , 
+            'C_CaL'      , 
+            'C_CaNa'     , 
+            'C_CaK'      , 
+            'C_Kr'       , 
+            'C_Ks'       , 
+            'C_K1'       , 
+            'C_NaCai'    , 
+            'C_NaCass'   , 
+            'C_NaKNa'    , 
+            'C_NaKK'     , 
+            'C_NaK'      , 
+            'C_Nab'      , 
+            'C_Kb'       , 
+            'C_Cab'      , 
+            'C_pCa'      , 
+            'C_relNP'    , 
+            'C_relCaMK'  , 
+            'C_upNP'     , 
+            'C_upCaMK'   , 
+            'C_leak'     , 
+            'C_up'       , 
+            'C_tr'       , 
+            'C_rel'      , 
+            'C_diffCa'   , 
+            'C_diffNa'   , 
+            'C_diffK'
+        ] ,
+        [   
+            env.s2comp1, 
+            env.s2comp2  
+        ] ) ;
+
+/*------------------------------------------------------------------------
+ * display
+ *------------------------------------------------------------------------
+ */
+    gui.display = gui.addFolder('Visualization options') ;
+    gui.display.visurf = env.visurf.controlByGui( gui.display ) ;
+    gui.display.add( env, 'skip' ).name('Skip Frames [x2]') ;
+
+/*------------------------------------------------------------------------
+ * simulation
+ *------------------------------------------------------------------------
+ */
+    gui.smlPrmFldr = gui.addFolder('Simulation') ;
+    gui.smlPrmFldr.add( env, 'time').listen() ;
+    gui.smlPrmFldr.add( env, 'initialize').name('Initialize Solution') ;
+    gui.smlPrmFldr.add( env, 'solve' ).name('Solve/Pause') ;
+    gui.smlPrmFldr.open() ;
+ 
+/*------------------------------------------------------------------------
+ * addCoeficients
+ *------------------------------------------------------------------------
+ */
+    function addCoeficients( fldr,
+            coefs,
+            solvers ,
+            options ){
+        var coefGui = {} ;
+        var min = undefined ;
+        var max = undefined ;
+        if (options != undefined ){
+            if (options.min != undefined ){
+                min = options.min ;
+            }
+            if (options.max != undefined ){
+                max = options.max ;
+            }
+        }
+        for(var i=0; i<coefs.length; i++){
+            var coef = addCoef(fldr,coefs[i],solvers) ;
+            if (min != undefined ){
+                coef.min(min) ;
+            }
+            if (max != undefined ){
+                coef.max(max) ;
+            }
+            coefGui[coefs[i]] = coef ;
+        }
+        return coefGui ;
+
+        /* addCoef */
+        function addCoef( fldr,
+                coef,
+                solvers     ){
+            var coefGui =   fldr.add( params, coef )
+                .onChange( 
+                        function(){
+                        Abubu.setUniformInSolvers(  coef, 
+                                params[coef], 
+                                solvers  ) ;
+                        } ) ;
+
+            return coefGui ;
+
+        }
+    }
+}
+
+</script>
+
+
+</body>
+</html>
+
