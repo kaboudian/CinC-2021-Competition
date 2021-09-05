@@ -202,40 +202,40 @@ let loadedJSON ;
  * let the user select the file
  *========================================================================
  */
-//var fileInput = document.getElementById('json_structure') ;
-//
-//fileInput.onchange = function(){
-//  let file = fileInput.files[0] ;
-//  if ( !file ){
-//      return ;
-//  }
-//  let reader = new FileReader() ;
-//  reader.readAsText(file) ;
-//
-//  reader.onload = function(e){
-//      let result = e.target.result ;
-//      loadedJSON = JSON.parse(result) ;
-//      $('#chooser').hide() ;
-//      $('.loaded').show() ;
-//      loadWebGL() ;
-//  } ;
-//}
+var fileInput = document.getElementById('json_structure') ;
+
+fileInput.onchange = function(){
+  let file = fileInput.files[0] ;
+  if ( !file ){
+      return ;
+  }
+  let reader = new FileReader() ;
+  reader.readAsText(file) ;
+
+  reader.onload = function(e){
+      let result = e.target.result ;
+      loadedJSON = JSON.parse(result) ;
+      $('#chooser').hide() ;
+      $('.loaded').show() ;
+      loadWebGL() ;
+  } ;
+}
 
 /*========================================================================
  * read from file on the server
  *========================================================================
  */
-let structureFile = new XMLHttpRequest();
-
-structureFile.onreadystatechange = () => {
-    if (structureFile.readyState == 4 && structureFile.status == 200) {
-        loadedJSON = JSON.parse(structureFile.responseText);
-        console.log(loadedJSON) ;
-        loadWebGL() ;
-    }
-};
-structureFile.open("GET", "jsons/structure_pig_192x192x192.json", true);
-structureFile.send();
+//let structureFile = new XMLHttpRequest();
+//
+//structureFile.onreadystatechange = () => {
+//    if (structureFile.readyState == 4 && structureFile.status == 200) {
+//        loadedJSON = JSON.parse(structureFile.responseText);
+//        console.log(loadedJSON) ;
+//        loadWebGL() ;
+//    }
+//};
+//structureFile.open("GET", "jsons/structure_pig_192x192x192.json", true);
+//structureFile.send();
 var gl = Abubu.gl ;
 
 /*========================================================================

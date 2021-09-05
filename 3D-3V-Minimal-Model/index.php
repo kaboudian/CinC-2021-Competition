@@ -15,13 +15,13 @@
 <!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
 <body>
     <h1>3D 3-Variable Minimal Model</h1>
-    <!--
+    
     <div id='chooser'>
         <h2>Select the JSON file containing the structure</h2>
-        <p style='color:red'>Before you can proceed, you need to choose the structural
+        <p style='color:red; font-size:34px'>Before you can proceed, you need to choose the structural
         file!</p>
-       <input type='file' id='json_structure' accept='.json, .JSON'></input>
-    </div> -->
+       <input type='file' id='json_structure' style="font-size:34px" accept='.json, .JSON'></input>
+    </div> 
 
     <table>
         <tr>

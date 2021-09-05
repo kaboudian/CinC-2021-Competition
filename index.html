@@ -1,14 +1,47 @@
 <!doctype html>
 <html>
+<link rel="stylesheet" href='abubu.css'>
 <body>
 <h1>2021 Computers in Cardiology Competition Submission</h1>
+
+<h2>Two dimensional models</h2>
+<p>In the provided two dimensional codes, you can interact with the simulations by clicking in the visulaization area, and through the graphical user interface.</p>
+
+<p>Through the graphical user interface, you can</p>
+<ul>
+    <li>change model parameters;</li>
+    <li>setup pacemakers;</li>
+    <li>change the behaviour of the mouse click;</li>
+    <li>alter visualization settings;</li>
+    <li>Edit the source code of different shaders during the simulations;</li>
+    <li>Save and reload simulation through json files;</li>
+</ul>
+<p>Be bold and make changes! If things don't work out, you can always reload the page for a fresh start!</p>
+
+<p>Choose any of the following codes to start:</p>
+
 <ol>
     <li>
         <a href='2D-3V-Minimal-Model'>Three variable minimal model</a>
     </li>
+    <li><a href="2D-CinC-Spirals">Activate the CinC</a></li>
     <li>
-        <a href='2D-OVVR-Model'>OVVR Model</a>
+        <a href='2D-OVVR-Model'>The 41-Parameter OVVR Model in 2D</a>
     </li>
 </ol>
+
+<h2>Three dimensional models</h2>
+<p>For running the three dimensional codes, you need to <a href="required_data.zip">download the structure files</a> and load them into the WebGL program. After downloading the file, unzip it and choose the file with the desired resolution to run the interactive simulations.</p>
+
+
+<p>Similar to the 2D codes, you can interact with the 3D codes through the graphical interface and the visualization area.</p>
+
+<p>To create excitations, use <b>Ctrl+Drag</b> in Microsoft Windows and Linux, and <b>Command+Drag</b> in macOS. To choose the voltage trace location, use <b>Shift+Click</b> on the visualized structure.</p>
+<ol>
+    <li><a href="3D-3V-Minimal-Model">Three variable minimal model</a></li>
+    <li><a href="3D-ORTP">The OVVR model with TNNP sodium dynamics</a></li>
+</ol>
+
+<p><a href="required_data.zip">Download the structure files before you start any 3D simulation!</a> </p>
 </body>
 </html>
