@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+<body>
+<h1>2021 Computers in Cardiology Competition Submission</h1>
+<ol>
+    <li>
+        <a href='2D-3V-Minimal-Model'>Three variable minimal model</a>
+    </li>
+    <li>
+        <a href='2D-OVVR-Model'>OVVR Model</a>
+    </li>
+</ol>
+</body>
+</html>

@@ -2,73 +2,13 @@
 <html>
 <head>
     <title>OVVR</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-
-    <script src='https://abubujs.org/libs/Abubu.latest.js' 
-	    type='text/javascript'></script>
-    <!-- editors and jQuery -->
-    <script 
-    src='https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.5/ace.js'  
-    type="text/javascript" charset="utf-8">
-    </script>
-    <script 
-        src='https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.5/mode-glsl.js'>
-    </script>
-    <script 
-        src='https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.5/theme-tomorrow.js'>
-    </script>
-    <script
-        src='https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.5/keybinding-vim.js'>
-    </script>
-    <script 
-        src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js">
-    </script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
-
-
-<style>
 <?php
-  echo file_get_contents( __dir__ . "/../abubu_app.css" ) ;
+    echo file_get_contents( __dir__ . "/../general_libs.html" ) ;
 ?>
 
-div.relative {
-    position: relative;
-    width:100% ;
-    min-height : 600px ;
-    max-height : 100% ;
-    max-width: 1024px
-} 
-
-div.editor {
-    position    : absolute ;
-    margin-left : 20px ;
-    width       : 90%;
-    height      : 100% ;
-    border      : 3px solid grey;
-    border-radius: 10px ;
-}
-
-#loading { 
-    position : fixed ;
-    bottom : 20px ;
-    left : 10px ;
-}
-
-#loadProgress {
-    width : 300px ;
-    background-color: #ddd ;
-}
-
-#loadBar {
-    width : 0% ;
-    height : 20px ;
-    background-color: #4caf50 ;
-    border-radius: 3px ;
-}
-
-</style>
+<style><?php
+  echo file_get_contents( __dir__ . "/../abubu_app.css" ) ;
+?></style>
 </head>
 
 
@@ -77,19 +17,19 @@ div.editor {
 <!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
 
 <?php
-    include "shader.php" ;
+    include "../shader.php" ;
+
+    $dir = __dir__ . "/shaders/"  ;
    
-    shader( 'initDomain'            ) ;
-    shader( 'zeroFluxDirections'    ) ;
+    shader( 'initDomain'          , $dir ) ;
+    shader( 'zeroFluxDirections'  , $dir ) ;
 
-    shader( 'init1'                 ) ;
-    shader( 'init2'                 ) ;
-    shader( 'comp1'                 ) ;
-    shader( 'comp2'                 ) ;
-    shader( 'click'                 ) ;
+    shader( 'init1'               , $dir ) ;
+    shader( 'init2'               , $dir ) ;
+    shader( 'comp1'               , $dir ) ;
+    shader( 'comp2'               , $dir ) ;
+    shader( 'click'               , $dir ) ;
 ?>
-
-
 
 <!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
 <!-- body of the html page                                             -->

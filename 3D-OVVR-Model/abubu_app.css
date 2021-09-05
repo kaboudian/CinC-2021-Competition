@@ -90,39 +90,3 @@ canvas.clickable:hover{
     text-align : left ;
     font: 'italic 12pt Times' ;
 }
-
-div.relative {
-    position: relative;
-    width:100% ;
-    min-height : 600px ;
-    max-height : 100% ;
-    max-width: 1024px
-} 
-
-div.editor {
-    position    : absolute ;
-    margin-left : 20px ;
-    width       : 90%;
-    height      : 100% ;
-    border      : 3px solid grey;
-    border-radius: 10px ;
-}
-
-#loading { 
-    position : fixed ;
-    bottom : 20px ;
-    left : 10px ;
-}
-
-#loadProgress {
-    width : 300px ;
-    background-color: #ddd ;
-}
-
-#loadBar {
-    width : 0% ;
-    height : 20px ;
-    background-color: #4caf50 ;
-    border-radius: 3px ;
-}
-
