@@ -56,35 +56,6 @@
         <img data-src='pics/header.png' align='bottom' width='100%'></img>
     
     </section>
-    <section>
-        <h2>Overview</h2>
-        <ul>
-            <li>What are the challenges in modeling cardiac tissue?</li>
-            <li>What is our suggested solution, and why?</li>
-            <li>Demonstration of the programs and what they can do.</li>
-            <li>Concluding remarks and Q&A!</li>
-        </ul>
-    </section>
-</section>
-
-<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
-<!-- Why cardiac dynamics? -->
-<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
-<section>
-    <h2>Why study cardiac dynamics?</h2>
-    <table>
-         <td width=65%>
-         <ul>
-             <li>Cardiac desease continued to be the leading cause of death in US and globally until 2020, only to be overtaken by COVID-19!
-             <li>17.3 million people die each year globally due to cardiac desease!</li>
-             <li>The number of deaths is expected to rise to 23.6 million deaths per year by 2030.</li>
-         </ul>
-         </td>
-         <td width=35%>
-             <img data-src='pics/cardiacProblem.jpg'>
-             <!--img data-src='pics/ventricular_fib.jpg'-->
-         </td>
-     </table>
 </section>
 
 <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
@@ -120,10 +91,10 @@
             <li>Spatial resolution ($\sim 200\mu m$)</li>
             <li>Number of ODEs per computational cell (2-100)</li>
         </ul>
-        <span class='fragment fade-in'>
+        <span >
         <p>So, for simulating 1 second of activity  on a $4\times4$cm 2D slab, we need to solve</p>
         </span>
-        <span class='fragment fade-in'>
+        <span >
          \[
         \begin{array}{llcl}
         (200\times200)\times10^{5}\times&2 & = & 8\times10^{9} \\
@@ -131,10 +102,10 @@
         \end{array}
         \]
         </span>
-        <span class='fragment fade-in-red'>
+        <span >
             <p>Similarly, 1 second of simulation in  3d requires solving  $\sim$twenty trillion  ODE's.</p>
         </span>
-        <p class='fragment'>Unfortunately, single processors are only able to solve about <span style='color:red'>$10^6$ to $10^7$ </span>ODEs per second.</p>
+        <p >Unfortunately, single processors are only able to solve about <span style='color:red'>$10^6$ to $10^7$ </span>ODEs per second.</p>
     </section>
 </section>
 
@@ -142,26 +113,6 @@
 <!-- parallel processing -->
 <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
 <section data-auto-animate>
-    <section data-auto-animate>
-        <h2>What is the solution?</h2>
-        <p >Parallel processing comes to the rescue</p>
-       <span >
-            <img data-src='pics/hpc.jpg' width=50%></br>
-            <small>
-                Technicians working on a large Linux cluster at the Chemnitz University of Technology, Germany.
-            </small>
-       </span> 
-    </section>
-    <section data-auto-animate>
-        <h2>What is the solution?</h2>
-        <p>Parallel processing comes to the rescue</p>
-        <span>
-            <img data-src='pics/tnnpSpeedup.png' width='50%'></br>
-            <small>Cherry and Fenton, Pitt. Sup. Ctr. 2010. 
-                Proj. Sci. Comp. pg 28-31. January 2011.</small>
-
-        </span>
-    </section>
     <section>
         <h2>Traditional parallel processing</h2>
         <ul>
@@ -180,13 +131,8 @@
 <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
 <section data-transition='zoom'>
     <!-- So... Is there any alternative? -->
-    <section data-transition='zoom'>
-        <h2>So... Is there any alternative?</h2>
-    </section> 
-
-    <!-- Yes! Of course there is an alternative :-D  -->
     <section data-transition='convex'>
-        <h2>Yes! Of course there is an alternative :-D</h2>
+        <h2>The alternative is GPU computing!</h2>
         <p style='text-align:left;'>Graphic Processing Units (GPUs) can provide high levels of parallelization at a fraction of the cost of clusters.
         </p>
         <img data-src=pics/cpu-and-gpu.jpg width=50%></img>
@@ -211,20 +157,6 @@
         <img data-src='pics/gpu_logos.png' height="500px">
     </section>
 
-    <!-- our choice -->
-    <section data-transition=zoom>
-        <h1>What is our choice?</h1>
-        <span class=fragment>
-           <img data-src='pics/webgl.png' height=200px>
-        </span>
-    </section>
-
-    <!-- But... What is WebGL? -->
-    <section data-transition='concave'>
-    <h2>But... What is WebGL?</h2>
-    <p class=fragment data-transition='zoom'>WebGL (Web Graphics Library) is a JavaScript API for rendering interactive 3D computer graphics and 2D graphics within any compatible web browser without the use of plug-ins.</p>
-    </section>
-
     <!-- Why webgl? -->
     <section>
         <h3>Why WebGL?</h3>
@@ -242,23 +174,14 @@
     <!-- how easy is it? -->
     <section>
     <h3>How easy is it to code in WebGL?</h3>
-    <ol>
-        <li>The heart of a WebGL computational code is the implementation of ``Fragment Shaders''.</li>
-        <li>Shaders have a C-like syntax!</li>
-        <li>It used to be difficult to reach to the part where you can start to programm your shaders.</li>
-    </ol>
-    <p class='fragment'>With the help of our library, <i>Abubu.js</i>, it is no longer so!</p>
-    <p class='fragment'>Abubu.js is freely available for download!</p>
-    <p class='fragment'>So, if you know C or a similar programming language,
+    <ul>
+        <li>It used to be difficult to reach to the part where you can start to programm your computational code in WebGL.</li>
+    </ul>
+    <p >With the help of our library, <i>Abubu.js</i>, it is no longer so!</p>
+    <p>Abubu.js is freely available for download!</p>
+    <p>So, if you know C or a similar programming language,
     you can easily learn to program shaders!</p>
     </section>
-
-    <!-- science advances -->
-    <section>
-        <h3>We have released the source code along with this article.</h3>
-        <img data-src='pics/sciadv.png' width=1000px>
-    </section>
-
     <!-- abubujs.org -->
     <section 
             data-background-iframe="https://abubujs.org"
@@ -285,8 +208,12 @@
 <!-- fhn -->
 <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
 <section  data-transition=fade 
-data-background-iframe="http://localhost/CinC-2021-Competition/"
-data-background-interactive></section>
+data-background-iframe="/CinC-2021-Competition"
+data-background-interactive>
+<div class='boxed' 
+        style='position:fixed; top:0px; left:200px;'>Visit: <i><b>https://kaboudian.github.io/CinC-2021-Competition</b></i></div> 
+    </section>
+</section>
 
 <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
 <!-- Sorry, one more! -->
