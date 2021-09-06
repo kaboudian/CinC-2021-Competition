@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+        <meta charset="utf-8">
+
+        <title>CinC 2021</title>
+
+        <meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+        <meta name="author" content="Hakim El Hattab">
+
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link rel="stylesheet" href="dist/reset.css">
+        <link rel="stylesheet" href="dist/reveal.css">
+        <link rel="stylesheet" href="dist/theme/serif.css" id="theme">
+
+        <!-- Theme used for syntax highlighting of code -->
+        <link rel="stylesheet" href="plugin/highlight/monokai.css" id="highlight-theme">
+        <style>
+            .reveal{
+                font-size : 160% ;
+            }
+            .boxed{
+                border: 1px solid black ;
+                border-radius: 5px;
+                padding : 10px ;
+                margin : 20px ;
+                background-color: #dddddd ;
+                color: black; 
+            }
+            .markdown{
+                font-size:160% ;
+            }
+</style>
+</head>
+
+<body>
+
+<!-- Any section element inside of this container is displayed as a slide -->
+<div class="reveal"><div class="slides">
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- title and outline -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section>
+    <section>
+        <h3>Real-Time Interactive Simulations of Complex Ionic Cardiac Cell Models in 2D and 3D Heart Structures with GPUs on Personal Computers</h3>
+        <p>Abouzar Kaboudian*, PhD</p>
+        <small><p>*abouzar.kaboudian@physics.gatech.edu</p></small>
+        
+        </br></br>
+        <img data-src='pics/header.png' align='bottom' width='100%'></img>
+    
+    </section>
+    <section>
+        <h2>Overview</h2>
+        <ul>
+            <li>What are the challenges in modeling cardiac tissue?</li>
+            <li>What is our suggested solution, and why?</li>
+            <li>Demonstration of the programs and what they can do.</li>
+            <li>Concluding remarks and Q&A!</li>
+        </ul>
+    </section>
+</section>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- Why cardiac dynamics? -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section>
+    <h2>Why study cardiac dynamics?</h2>
+    <table>
+         <td width=65%>
+         <ul>
+             <li>Cardiac desease continued to be the leading cause of death in US and globally until 2020, only to be overtaken by COVID-19!
+             <li>17.3 million people die each year globally due to cardiac desease!</li>
+             <li>The number of deaths is expected to rise to 23.6 million deaths per year by 2030.</li>
+         </ul>
+         </td>
+         <td width=35%>
+             <img data-src='pics/cardiacProblem.jpg'>
+             <!--img data-src='pics/ventricular_fib.jpg'-->
+         </td>
+     </table>
+</section>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- Computatiomal demand -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section data-transition='slide'>
+    <h2>Cardiac models and their complexities</h2>
+    <!-- cardiac models: from cell to tissue --> 
+    <section>
+        <table>
+        <td width="50%">
+            <img data-src="pics/tissue.png" width="70%" vertical-align='middle'>
+            \[	C_m\frac{\partial V}{\partial t}= 
+            \nabla.\left(D\nabla V\right)-I_{ion}   \]
+            </br>
+            <ul>
+                    <li> Minimal models have as low as 12 parameters and 
+                    2-4 variables.</li>
+                    <li>TP model , 98 equations, 24 variables (ODEs)</li>
+                    <li>Single-Cell models can have up to 100 variables!</li>
+            </ul>
+        </td>
+        <td width=50%>
+            <img data-src='pics/cellwall.png' width='100%'>
+            <img data-src='pics/tnnp.png' width='100%'>
+        </td>
+        </table>
+    </section>
+    <!-- sample calculations -->
+    <section style='text-align:left;'>
+        <ul style='text-align:left;'>
+            <li>Stiff ODEs ($dt\sim0.01ms$)</li>
+            <li>Spatial resolution ($\sim 200\mu m$)</li>
+            <li>Number of ODEs per computational cell (2-100)</li>
+        </ul>
+        <span class='fragment fade-in'>
+        <p>So, for simulating 1 second of activity  on a $4\times4$cm 2D slab, we need to solve</p>
+        </span>
+        <span class='fragment fade-in'>
+         \[
+        \begin{array}{llcl}
+        (200\times200)\times10^{5}\times&2 & = & 8\times10^{9} \\
+        & 100 & = & 4\times10^{11}
+        \end{array}
+        \]
+        </span>
+        <span class='fragment fade-in-red'>
+            <p>Similarly, 1 second of simulation in  3d requires solving  $\sim$twenty trillion  ODE's.</p>
+        </span>
+        <p class='fragment'>Unfortunately, single processors are only able to solve about <span style='color:red'>$10^6$ to $10^7$ </span>ODEs per second.</p>
+    </section>
+</section>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- parallel processing -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section data-auto-animate>
+    <section data-auto-animate>
+        <h2>What is the solution?</h2>
+        <p >Parallel processing comes to the rescue</p>
+       <span >
+            <img data-src='pics/hpc.jpg' width=50%></br>
+            <small>
+                Technicians working on a large Linux cluster at the Chemnitz University of Technology, Germany.
+            </small>
+       </span> 
+    </section>
+    <section data-auto-animate>
+        <h2>What is the solution?</h2>
+        <p>Parallel processing comes to the rescue</p>
+        <span>
+            <img data-src='pics/tnnpSpeedup.png' width='50%'></br>
+            <small>Cherry and Fenton, Pitt. Sup. Ctr. 2010. 
+                Proj. Sci. Comp. pg 28-31. January 2011.</small>
+
+        </span>
+    </section>
+    <section>
+        <h2>Traditional parallel processing</h2>
+        <ul>
+            <li>can be expensive to aquire;</li>
+            <li>can be difficult to maintain;</li>
+            <li>can be challenging to implement code;</li>
+            <li>require users with specialized expertice to run their codes;</li>
+            <li>involves special expertise to debug codes;</li>
+            <li>involves the hassle of dealing with cluster queues;</li>
+        </ul>
+    </section>
+</section>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- the alternative to hpc -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section data-transition='zoom'>
+    <!-- So... Is there any alternative? -->
+    <section data-transition='zoom'>
+        <h2>So... Is there any alternative?</h2>
+    </section> 
+
+    <!-- Yes! Of course there is an alternative :-D  -->
+    <section data-transition='convex'>
+        <h2>Yes! Of course there is an alternative :-D</h2>
+        <p style='text-align:left;'>Graphic Processing Units (GPUs) can provide high levels of parallelization at a fraction of the cost of clusters.
+        </p>
+        <img data-src=pics/cpu-and-gpu.jpg width=50%></img>
+    </section>
+
+    <section data-transition=convex>
+        <h2> Why do you think GPU computing is the future?</h2>
+        <img data-src='pics/gpu_power_increase.png' height=400px>
+        <p>Notice that CPU power has been stagnant in the order of a few GHz due to thermodynamic limits!</p>
+        
+    </section>
+</section>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- What is WebGL and Why WebGL? -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section>
+
+    <!-- Various languages -->
+    <section data-transition='covex'>
+        <h2>How do we program them?</h2>
+        <img data-src='pics/gpu_logos.png' height="500px">
+    </section>
+
+    <!-- our choice -->
+    <section data-transition=zoom>
+        <h1>What is our choice?</h1>
+        <span class=fragment>
+           <img data-src='pics/webgl.png' height=200px>
+        </span>
+    </section>
+
+    <!-- But... What is WebGL? -->
+    <section data-transition='concave'>
+    <h2>But... What is WebGL?</h2>
+    <p class=fragment data-transition='zoom'>WebGL (Web Graphics Library) is a JavaScript API for rendering interactive 3D computer graphics and 2D graphics within any compatible web browser without the use of plug-ins.</p>
+    </section>
+
+    <!-- Why webgl? -->
+    <section>
+        <h3>Why WebGL?</h3>
+        <ul>
+            <li >Runs all modern browsers, e.g. <i>not</i> Internet Explorer;</li>
+            <li>No need to compile </li>
+            <li>No need to install</li>
+            <li>Platform independent</li>
+            <li>Simultaneous processing and post-processing</li>
+            <li>Interactive</li>
+            <li>Free!</li>
+        </ul>
+    </section>
+
+    <!-- how easy is it? -->
+    <section>
+    <h3>How easy is it to code in WebGL?</h3>
+    <ol>
+        <li>The heart of a WebGL computational code is the implementation of ``Fragment Shaders''.</li>
+        <li>Shaders have a C-like syntax!</li>
+        <li>It used to be difficult to reach to the part where you can start to programm your shaders.</li>
+    </ol>
+    <p class='fragment'>With the help of our library, <i>Abubu.js</i>, it is no longer so!</p>
+    <p class='fragment'>Abubu.js is freely available for download!</p>
+    <p class='fragment'>So, if you know C or a similar programming language,
+    you can easily learn to program shaders!</p>
+    </section>
+
+    <!-- science advances -->
+    <section>
+        <h3>We have released the source code along with this article.</h3>
+        <img data-src='pics/sciadv.png' width=1000px>
+    </section>
+
+    <!-- abubujs.org -->
+    <section 
+            data-background-iframe="https://abubujs.org"
+            data-background-interactive>
+       <div class='boxed' 
+        style='position:fixed; bottom:30px;'>We have also released a ton of resources at <i><b>https://abubujs.org/</b></i></div> 
+    </section>
+</section>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- Time marching -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section>
+        <h3>The philosophy is to treat the time-marching problem as an image manipulation problem!</h3>
+        <ol>
+            <li>We consider our physical values on the domain to be stored into one/several image(s)!</li>
+            <li>We assign state-variables to each color of every image</li>
+            <li>We use shader language to update our solution by using these images as input and output!</li>
+        </ol>
+        <img data-src='pics/shader-time-stepping.png' width=60%></img>
+</section>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- fhn -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section  data-transition=fade 
+data-background-iframe="http://localhost/CinC-2021-Competition/"
+data-background-interactive></section>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- Sorry, one more! -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section data-transition=zoom>
+    <h4>Can you affor a pocket super computer?</h4>
+    <div class=fragment>
+        <video width=500px controls='show' muted autoplay class='center' data-src='videos/OVVR_64_cubed.mp4' type='video/mp4' class=fragment></video>
+
+        <p>Solving OVVR Model in 3D! This phone is solving <span style='color:red'>1.7 billion</span> ODEs per second!</p>
+    </div>
+</section>
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- concluding remarks -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section data-transition=fade>
+    <h1>Concluding remarks</h1>
+    <ul>
+        <li>The proposed GPU technology can expand the types of research we can do!</li>
+        <li>This is not just a replacement of HPC!</li>
+        <li>The speed of the simulations can be illuminating and guiding us in our future studies.</li>
+        <li>The wide availability and universality of the technology, promotes a level field for all groups in cardiac dyanmics.</li>
+    </ul>
+
+    <div class=boxed>
+       <p>If you would like to try these programs on your own computer visit:</p>
+    <p><b><a ref=https://kaboudian.github.io/CinC-2021-Competition/>https://kaboudian.github.io/CinC-2021-Competition/</a></b></p>
+ 
+    </div>
+</section>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- Thank flavio -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section data-transition=concave>
+    <h2>Special thanks to my great mentor...</h2>
+    <img data-src='pics/flavio-fenton.png' height=500px>
+</section>
+
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- Thank the funding agencies -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section data-transition=concave>
+    <img data-src='pics/sponsors.png' height=600px>
+</section>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- Q&A -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section>
+    <h3>Thank you for the opportunity to present this work!</h3>
+    <h4 class=fragment>Thank you for your attention!</h4>
+    <img class=fragment data-src='pics/questions.jpg' height='400px'> 
+</section>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- how fast are we? -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section data-transition=concave>
+    <section data-transition=concave>
+        <h2>How fast are these simulations can be?</h2>
+        <img data-src='pics/fast.jpg'></img>
+        <p>On this machine with a USD600 GPU, <i>in every second</i>, I can solve $3.6\times 10^{10}$ ordinary differential equations!</p>
+    </section>
+
+    <section>
+        <h3>How fast is that?</h3>
+        <video  data-autoplay data-src="videos/superfast.ogv" controls></video>
+    </section>
+</section>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- How fast are we compared to other languages? -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section>
+    <h3>How fast is WebGL with Abubu.js when compared against other languages?</h3>
+    <section>
+        <img data-src='pics/fhn.png' width=800px>
+    </section  data-transition=fade>
+    <section>
+        <img data-src='pics/mm.png' width=800px>
+    </section>
+    <section data-transition=fade>
+        <img data-src='pics/br.png' width=800px>
+    </section>
+    <section  data-transition=fade>
+        <img data-src='pics/gpu_comp.png'>
+    </section>
+</section>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- How accurate are these simulations using WebGL? -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section>
+    <section data-transition=convex>
+        <h3>It's not enough to be fast...</h3>
+        <h2 class=fragment>How reliable are the results?</h2>
+    </section>
+    <section data-transition=convex>
+        <h2>Let's campare against experimental results:</h2>
+        <table>
+            <td width=50%>
+                <img data-src=pics/pinned_core.gif height=300px>
+            </td>
+            <td width=50%>
+                <img data-src=pics/linear_core.gif height=300px>
+            </td>
+        </table>
+        <p>The experiments were reproduced using the 41-variable OVVR model<sup>*</sup>. </p>
+        <p  style='font-size:.6em;text-align:left'> [*] O'Hara, Thomas, Laszlo Virag, Andras Varro, and Yoram Rudy. "Simulation of the undiseased human cardiac ventricular action potential: model formulation and experimental validation." PLoS computational biology 7, no. 5 (2011): e1002061.
+        </p>
+    </section>
+    <section>
+        <h3>Another comparison!</h3>
+        <img data-src='pics/experiment-vs-numerical.png' height=400px>
+        <p>Comparing experimental data with the interactive simulations. <b>(A)</b> Single spiral wave (VT) and <b>(B)</b> fibrillation in porcine ventricles. <b>(C)</b> VT in rabbit with drug DAM. <b>(D)</b> Fibrillation in rabbit with drug CytoD.</p>
+    </section>
+    <section>
+        <h4>VT in porcine ventricles</h4>
+        <img data-src='pics/image9.gif' height=400px>
+    </section>
+</section>
+
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<!-- What can we do with these? -->
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<section>
+    <h1>What can we do with this type of simulations?</h1>
+</section>
+
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- Mechanistic studies -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section>
+    <section>
+        <h2>Mechanistic studies are now intuitive...</h2>
+    </section>
+    <section 
+        data-background-iframe="programs/defib"
+        data-background-interactive></section>
+    <section>
+        <p>The test to verify this mechanism of defibrillation is currently underway via Optogenetic experiemnts on 2D mono-layers by our collaboratores at McGill Univeristy.</p>
+
+        <p class=fragment>The fact that we can interact with these simulations makes these types of mechanistic studies the more intuitive.</p>
+        <p class=fragment>Once the mechanism is discoverred, the simulation may no longer be needed.</p>
+            </section>
+</section>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- Uncertainty quantification and variability in cardiac EP models -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section> 
+    <section data-transition=convex>
+        <h2>Variability and uncertainty play an important role in device efficacy, reliability and safety!</h2>
+    </section>
+
+    <section data-transition=concave>
+        <h3>Uncertainty quantification and variability studies in cardiac EP models can be done in multi-dimensions!</h3>
+    </section>
+    <section  data-transition=convex>
+        <img data-src='pics/ito_uncertainty.jpg' height=500px>
+        <small> Snapshots of activity at t = 1, 000 ms for 100 random parameters, under Ito parameter uncertainty in the canine cell model by Pathnamanathan et al (2019).</small>
+    </section>
+    <section  data-transition=concave>
+        <h4>For details and more on this study see</h4>
+        <img data-src='pics/pras.png' width=700px>
+    </section>
+</section>
+
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<!-- 3d simulations -->
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- slide -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section data-transition=convex>
+    <h3>At this point, I think you are almost convinced, but...</h3>
+    <img data-src=pics/square.png height=300px class=fragment></img>
+    <img data-src=pics/heart.png height=300px class=fragment></img> 
+    <img data-src=pics/humanheart.jpg height=300px class=fragment></img>
+</section>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- why study 3d? destabilization of scroll wave due to negative       -->
+<!--  fillament tenstion                                                -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section>
+    <h3>Why study 3D?</h3>
+    <video 
+        data-src=videos/block.mp4 
+        type=video/mp4 autoplay muted controls=autohide></video> 
+</section>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- Dimensional Effects -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section>
+<h3>Dimensional Effects</h3>
+    <section>
+        <img data-src='pics/0D.png'>
+        <p>Single-Cell Simulations in OVVR model</p>
+    </section>
+    <section>
+        <img data-src='pics/1D.png'>
+        <p>One-Dimensional Tissue Simulations in OVVR model</p>
+    </section>
+    <section>
+        <img data-src='pics/2D.png'>
+        <p>Two-Dimensional Tissue Simulations in OVVR model</p>
+    </section>
+    <section>
+        <video  data-autoplay data-src="videos/I_Kr_Blockage.webm" height=400px controls></video>
+        <p>Single stimulus leads to complex dynamics in 2D for OVVR model. I_Kr partial blockage leads to the complex dynamics in 2D.</p>
+    </section>
+</section>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- How do we do it?                                                   -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section data-transition=zoom>
+    <section>        
+        <h2>How do we simulate dynamics in 3D?</h2>
+    </section>
+
+    <section data-transition=convex>
+        <h4>It's easy. All we have to do is to flatten 3D space into 2:-D</h4>
+        <img data-src='pics/flatMatrix_128x128x64.png' height=500px></img>
+    </section>
+    <section data-transition=convex>
+        <h4>... and use the following function instead of texture:</h4>
+        <div class=markdown data-markdown='codes/Texture3D.glsl'></div> 
+    </section>
+</section>
+
+<style>
+.atria{
+    border-radius:5px;
+    padding:5px; 
+    background-color:#eeeeee;
+    position:fixed;
+    top:5px;
+}
+</style>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- 4v Atrial model                                                    -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+
+<section>
+    <h3>Ready for the simulation?</h3>
+    <h4 class=fragment>Let's use a patient specific model:</h4>
+    <p class=fragment>Patient specific fitting of the model can be helpful in understanding why dynamics can be different for different patients.</p>
+</section>
+
+
+<section data-background-iframe="programs/3D-Atrial"
+        data-background-interactive>
+</section>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- Anatomical variability -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section>
+    <section>
+        <h2>This technology can enable us to study the effects of variability of patient specific anatomies</h2>
+    </section>
+    <section data-background-iframe="programs/ORTP_Patients"
+        data-background-interactive>
+    </section>
+</section>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- AR-VR Applications and NSF/FDA SIR award -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section data-transition=zoom>
+   <section>
+       <h2>Shouldn't we use this technology in AR/VR?</h2>
+   </section>
+   <section data-transition=convex>
+        <h3>Of course we should!</h3>
+   </section>
+   <section data-transition=concave>
+    <p>These simulations can become the heart and sole of AR and VR programs such as this one:</p>
+    <video  data-autoplay data-src="videos/VR_heart_demo_FDA_GATech.mp4" height=400px controls></video>
+    </section> 
+    <section>
+        <h3>NSF/FDA SIR award</h3>
+        <h4>Real-Time Simulations of Electrical Activity of the Heart and Augmented/Virtual Reality for Medical Device Applications</h4>
+        <small>Award No: 2037894</small>
+        <p>
+            Our goal is to help create a an infrastructure critically needed by the FDA to <b>evaluate</b> and <b>validate</b> in silico studies and VR/AR systems intended to explore new approaches for visualization and manipulation of cardiovascular anatomies, including electrical wave propagations and strategical planning of invasive procedures used in the clinic as well as anti-arrhythmic drug design. 
+        </p>
+    </section>
+    <section>
+        <h2>What else can AR/VR help with?</h2>
+        <ul>
+            <li>Teaching: if a picture is worth a thousand words, how valuable is AR/VR?</li>
+            <li>Patient outreach;</li>
+            <li>Patient specific medicine;</li>
+        </ul>
+    </section>
+</section>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- Fluid-flow -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section data-transition=convex>
+    <section>
+        <h2>Last question: can we bring fluid-flow into the picture?</h2>
+    </section>
+    
+    <section data-background-iframe="programs/lbm"
+        data-background-interactive></section>
+</section>
+
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- Sorry, one more! -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section data-transition=zoom>
+    <h3>So sorry! One more question...</h3>
+    <h4 class=fragment>Can you affor a pocket super computer?</h4>
+    <div class=fragment>
+        <video width=500px controls='show' muted autoplay class='center' data-src='videos/OVVR_64_cubed.mp4' type='video/mp4' class=fragment></video>
+
+        <p>Solving OVVR Model in 3D! This phone is solving <span style='color:red'>1.7 billion</span> ODEs per second!</p>
+    </div>
+</section>
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- concluding remarks -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<section data-transition=fade>
+    <h1>Concluding remarks</h1>
+    <ul>
+        <li>The proposed GPU technology can expand the types of research we can do!</li>
+        <li>This is not just a replacement of HPC!</li>
+        <li>The speed of the simulations can be illuminating and guiding us in our future studies.</li>
+        <li>The wide availability and universality of the technology, promotes a level field for all groups in cardiac dyanmics.</li>
+    </ul>
+
+    <div class=boxed>
+       <p>If you would like to try these programs on your own computer visit:</p>
+    <p><b><a ref=https://kaboudian.github.io/InterviewSeminarAtFDA/>https://kaboudian.github.io/InterviewSeminarAtFDA/</a></b></p>
+ 
+    </div>
+</section>
+
+</div></div> <!-- end of reveal and slides -->
+
+
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<!-- scripts used for presentation                                      -->
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<script src="dist/reveal.js"></script>
+<script src="plugin/zoom/zoom.js"></script>
+<script src="plugin/notes/notes.js"></script>
+<script src="plugin/search/search.js"></script>
+<script src="plugin/markdown/markdown.js"></script>
+<script src="plugin/highlight/highlight.js"></script>
+<script src="plugin/math/math.js"></script>
+<script>
+        // Also available as an ES module, see:
+        // https://revealjs.com/initialization/
+        Reveal.initialize({
+                controls: true,
+                progress: true,
+                center: true,
+                hash: true,
+                math: {
+                      mathjax: 'https://cdn.jsdelivr.net/gh/mathjax/mathjax@2.7.8/MathJax.js',
+                      config: 'TeX-AMS_HTML-full',
+                      // pass other options into `MathJax.Hub.Config()`
+                      TeX: { Macros: { RR: "{\\bf R}" } }
+                },
+                
+                // Learn about plugins: https://revealjs.com/plugins/
+                plugins: [ RevealMath, RevealZoom, RevealNotes, RevealSearch, RevealMarkdown, RevealHighlight ]
+        });
+
+</script>
+
+</body>
+</html>

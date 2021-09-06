@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+
+<!--@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@-->
+<!-- 2D FitzHugh-Nagumo Model                                           -->
+<!--                                                                    -->
+<!-- PROGRAMMER     :   ABOUZAR KABOUDIAN                               -->
+<!-- DATE           :   Fri 21 Jul 2017 09:48:16 AM EDT                 -->
+<!-- PLACE          :   ATLANTA, GA, USA                                -->
+<!--@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@-->
+<html>
+<head>
+<title>FhN</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- Styles for Stats library                                           -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<style>
+#stats { position: fixed; top:0; left: 0 }
+#stats #fps { background: transparent !important }
+#stats #fps #fpsText { color: #aaa !important }
+#stats #fps #fpsGraph { display: none }
+canvas.clickable:hover{
+    cursor:pointer ;
+    cursor:hand ;
+}
+
+div.relative {
+  position: relative;
+  height: 512px;
+  border: 1px solid black;
+} 
+
+div.editor {
+  position : absolute;
+  top: 0px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width:100%;
+}
+
+</style>
+<script src='libs/stats.js'></script>
+<script src='Abubu/libs/Abubu.js'></script>
+
+<script src='config.js'></script>
+<script data-main="app/main" src="libs/require.js"></script>
+<link rel="stylesheet" type="text/css" href="/css/abubu_app.css">
+<script 
+    src='https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.5/ace.js'  
+    type="text/javascript" charset="utf-8">
+</script>
+<script 
+    src='https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.5/mode-glsl.js'></script>
+<script 
+    src='https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.5/theme-tomorrow.js'></script>
+<script
+    src='https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.5/keybinding-vim.js'></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<!-- MathJax -->
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
+  displayAlign: "left",
+  TeX :{
+    style: {
+        "padding": "10px 20px",
+    }
+
+  }
+});
+</script>
+<!--    The following line imports the MathJax library          -->
+<script 
+    type="text/javascript" async 
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS_CHTML">
+</script>
+<!-- including AkPlot.js for plotting purposes. -->
+<script src='libs/AkPlot.js'></script>
+
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<!-- style -->
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<link rel="stylesheet" type="text/css" href="/css/abubu_app.css">
+
+
+<!--@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@-->
+<!--                    MAIN BODY OF THE HTML                           -->
+<!--@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@-->
+</head>
+<body id='main-body'>
+<h1>FitzHugh-Nagumo Model</h1>
+
+<table>
+    <tr>
+        <td>
+            <canvas 
+                id="canvas_1" 
+                width="512" 
+                height="512" 
+                style="border:1px solid #000000;" >
+                    Your browser does not support the HTML5 canvas tag.
+            </canvas>
+        </td> 
+        <td>
+            <canvas 
+                id="canvas_2" 
+                width="512" 
+                height="512" 
+                style="border:1px solid #000000;display:none;" >
+                    Your browser does not support the HTML5 canvas tag.
+            </canvas>
+       </td> 
+    </tr>
+    <!-- 
+    <tr id=editors style='display:none'>
+        <td id='tdiv_1'> 
+            <h2>Initial Condition Editor</h2>
+            <div class=relative id=container_1>
+                <div class=editor id='editor_1'></div>
+            </div>
+        </td>
+        <td id='tdiv_2'>
+            <h2>Model Solver Editor</h2>
+            <div class=relative id=container_2>
+                <div class='editor' id='editor_2'></div>
+            </div>
+        </td>
+    </tr> -->
+</table>
+<div id='editors'  style='width:550px; display:none'>
+    <h2 id='editorTitle'></h2>
+    <div class=relative id='editorContainer'>
+        <div id='editor' class='editor'></div>
+    </div>
+</div>
+
+<p>
+In this program, we are using a 3<sup>rd</sup> order FitzHugh-Nagumo model which follows the governing equations below.</p>
+<p>
+    \[
+        \frac{\partial v}{\partial t} = D\nabla^2v + v(1-v)(v-a)-w
+    \]
+
+    \[
+        \frac{\partial w}{\partial t} = \epsilon(bv-w+\delta) 
+    \]
+</p>
+<p>where $v$ and $w$ are the state variables, and the rest of the parameters determine the dynamics of the system and are determined through the graphical user interface.</p>
+<p>The first canvas shows the colorplot of the $v$ variable over the domain while the next canvas shows the nullclines and the trajectory of a single cell for 600 units of time starting from the click values set through the graphical user interface.</p>
+
+<p>You can click on the nullcline plot to choose the initial conidtion. Using the same initial condition, you can also click on the color plot to purturb the solution and see the effects. Throught the graphical interface, you can choose whether you intend to purturb both $v$ and $w$ variable or just one of them.</p>
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- Footer -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<div class=footer>
+<p>Programmed by <b><i>Abouzar Kaboudian</i></b> @ CHAOS Lab, Georgia Institute of Technology.</p>
+<p>email: <a href='mailto:abouzar.kaboudian@physics.gatech.edu'>abouzar.kaboudian@physics.gatech.edu</a></p>
+</div>
+
+</body>
+</html>

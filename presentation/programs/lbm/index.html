@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+
+<!--@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@-->
+<!-- 2D Lattice Boltzmnann                                              -->
+<!--                                                                    -->
+<!-- PROGRAMMER     :   ABOUZAR KABOUDIAN                               -->
+<!-- DATE           :   Fri 21 Jul 2017 09:48:16 AM EDT                 -->
+<!-- PLACE          :   ATLANTA, GA, USA                                -->
+<!--@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@-->
+<html>
+<head>
+<title>LBM</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<!-- Styles for Stats library                                           -->
+<!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+<style>
+#stats { position: fixed; top:0; left: 0 }
+#stats #fps { background: transparent !important }
+#stats #fps #fpsText { color: #aaa !important }
+#stats #fps #fpsGraph { display: none }
+canvas.clickable:hover{
+    cursor:pointer ;
+    cursor:hand ;
+}
+</style>
+<script src='libs/stats.js'></script>
+<script src='Abubu/libs/Abubu.js'></script>
+
+<script src='fpsmeter.min.js'></script>
+<script src='config.js'></script>
+<script data-main="app/main" src="libs/require.js"></script>
+
+<!--@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@-->
+<!--                    MAIN BODY OF THE HTML                           -->
+<!--@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@-->
+</head>
+<body id='main-body'>
+<body>
+</html>

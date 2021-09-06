@@ -1,0 +1,1597 @@
+<!doctype html>
+<html>
+<head>
+    <title>TP</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <script src='https://abubujs.org/libs/Abubu.latest.js' 
+	    type='text/javascript'></script>
+
+<style>
+/* unvisited link */
+a:link {
+    	color: blue;
+}
+
+/* visited link */
+a:visited {
+    	color: blue;
+}
+
+/* mouse over link */
+a:hover {
+    	color: hotpink;
+}
+
+/* selected link */
+a:active {
+    	color: blue;
+}
+/*
+li{
+    	margin : 10px 6px ;
+} */
+
+body {
+	counter-reset: h1;
+}
+
+
+h1{
+        max-width: 1024px ;
+	text-align:left;
+	color: white;
+       	background-color: #00254c;
+       	padding-left: 20px ;
+       	padding-top: 10px ;
+       	padding-bottom: 10px ;
+       	border-radius: 10px;
+}
+
+h2 {
+        max-width: 1024px ;
+    	color: #00254c;
+    	background-color: #e5e5e5 ;
+    	padding-left: 20px ;
+    	padding-top: 2.5px ;
+    	padding-bottom: 2.5px ;
+
+    	border-radius: 10px;
+}
+
+h3 {
+        max-width: 1024px ;
+    	color: #00254c;
+    	background-color: #f0f0f0 ;
+    	padding-left: 20px ;
+    	padding-top: 2.5px ;
+    	padding-bottom: 2.5px ;
+    	border-radius: 10px;
+}
+
+h4 {
+        max-width: 1024px ;
+    	color: #00254c;
+    	background-color: #fafafa ;
+    	padding-left: 20px ;
+    	padding-top: 2.5px ;
+    	padding-bottom: 2.5px ;
+    	border-radius: 10px;
+}
+
+p{
+    max-width : 700px  ;
+    padding-left: 10px ;
+}
+canvas.clickable:hover{
+    cursor:pointer ;
+    cursor:hand ;
+}
+
+.footer{
+    position : fixed ; 
+    max-width: 1024px ;
+    border-radius:10px ;
+    left : 0px ;
+    width : 100% ;
+    background-color: #fafafa;
+    color:black ;
+    bottom: 0px ;
+    text-align : left ;
+    font: 'italic 12pt Times' ;
+}
+</style>
+</head>
+
+
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<!-- All shaders included here (codes written in GLSL)                 -->
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+
+
+<!-- ***************************************************************** -->
+<script id='init' type='x-shader-fragment'>#version 300 es
+
+precision highp int ;
+precision highp float ;
+
+in vec2 cc ;
+
+uniform int cellType ;
+
+// output color layouts ..................................................
+layout (location = 0) out vec4 ocolor0 ;
+layout (location = 1) out vec4 ocolor1 ;
+layout (location = 2) out vec4 ocolor2 ;
+layout (location = 3) out vec4 ocolor3 ;
+layout (location = 4) out vec4 ocolor4 ;
+
+// macros to assign color channels to physical variable ..................
+#define V       color0.r
+#define v       color0.r
+#define vv      color0.r
+
+#define sf      color0.g
+#define Nai     color0.b
+#define Ki      color0.a 
+
+#define Cai     color1.r
+#define CaSS    color1.g
+#define ccass   CaSS
+#define CaSR    color1.b
+#define I_SumCa color1.a 
+
+#define sm      color2.r
+#define sh      color2.g
+#define sj      color2.b
+#define sxs     color2.a
+
+#define sd      color3.r
+#define sRR     color3.g
+#define sf2     color3.b
+#define sfcass  color3.a 
+
+#define sr      color4.r
+#define ss      color4.g
+#define sxr1    color4.b
+#define sxr2    color4.a
+
+#define EPI     0
+#define MYO     1
+#define ENDO    2
+
+
+/*========================================================================
+ * main body of the shader
+ *========================================================================
+ */
+void main(){
+    vec4 color0, color1, color2, color3, color4 ;
+
+    if (cellType == EPI){
+        // Epi cells
+        V       = -85.46 ;
+        Cai     = 0.0001029;
+        CaSR    = 3.432;
+        CaSS    = 0.0002120;
+        Nai     = 9.293;
+        Ki      = 136.2;
+        sm      = 0.001633;
+        sh      = 0.7512;
+        sj      = 0.7508;
+        sxr1    = 0.0002052;
+        sxr2    = 0.4736;
+        sxs     = 0.003214;
+        sr      = 2.326e-8;
+        ss      = 1.000;
+        sd      = 3.270e-5;
+        sf      = 0.9767;
+        sf2     = 0.9995;
+        sfcass  = 1.000;
+        sRR     = 0.9891;
+    }else if (cellType == MYO){
+        // M-cells
+        V       = -84.53;
+        Cai     = 0.0001156;
+        CaSR    = 4.130;
+        CaSS    = 0.0002331;
+        Nai     = 9.322;
+        Ki      = 136.0;
+        sm      = 0.001694;
+        sh      = 0.7466;
+        sj      = 0.7457;
+        sxr1    = 0.0002140;
+        sxr2    = 0.4718;
+        sxs     = 0.003343;
+        sr      = 2.392e-8;
+        ss      = 1.000;
+        sd      = 3.345e-5;
+        sf      = 0.9595;
+        sf2     = 0.9995;
+        sfcass  = 1.000;
+        sRR     = 0.9874;
+    }else{
+        // endo
+        V       = -84.70;
+        Cai     = 0.0001021;
+        CaSR    = 3.385;
+        CaSS    = 0.0002111;
+        Nai     = 9.413;
+        Ki      = 136.1;
+        sm      = 0.001634;
+        sh      = 0.7512;
+        sj      = 0.7508;
+        sxr1    = 0.0002051;
+        sxr2    = 0.4736;
+        sxs     = 0.003213;
+        sr      = 2.326e-8;
+        ss      = 0.6401;
+        sd      = 3.270e-5;
+        sf      = 0.9771;
+        sf2     = 0.9995;
+        sfcass  = 1.000;
+        sRR     = 0.9891;
+    }
+
+    // output colors .....................................................
+    ocolor0 = vec4(color0 ) ;
+    ocolor1 = vec4(color1 ) ;
+    ocolor2 = vec4(color2 ) ;
+    ocolor3 = vec4(color3 ) ;
+    ocolor4 = vec4(color4 ) ;
+}
+
+
+</script><!-- end of init shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='comp' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * comp.frag    : Computational shader that marches the solution for the
+ * TP model
+ *
+ * PROGRAMMER   : ABOUZAR KABOUDIAN
+ * DATE         : Mon 26 Oct 2020 16:48:36 (EDT)
+ * PLACE        : Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+
+precision highp float ;
+precision highp int ;
+
+in vec2 cc ;
+
+uniform float       dt , diffCoef , C_m ;
+uniform float       ds_x, ds_y ;
+uniform float       capacitance ;
+
+// input samplers
+uniform sampler2D   icolor0, icolor1, icolor2, icolor3, icolor4 ;
+
+uniform int     cellType ;
+uniform float   C_CaL, C_pCa, C_bCa, C_leak, C_up, C_xfer, C_rel , 
+                C_Na,  C_bNa, C_NaK, C_NaCa, C_K1, C_to,
+                C_Kr,  C_Ks,  C_pK ;
+
+layout (location = 0) out vec4 ocolor0 ;
+layout (location = 1) out vec4 ocolor1 ;
+layout (location = 2) out vec4 ocolor2 ;
+layout (location = 3) out vec4 ocolor3 ;
+layout (location = 4) out vec4 ocolor4 ;
+
+// macros to assign color channels to physical variable ..................
+#define V       color0.r
+#define v       color0.r
+#define vv      color0.r
+
+#define sf      color0.g
+#define Nai     color0.b
+#define Ki      color0.a 
+
+#define Cai     color1.r
+#define CaSS    color1.g
+#define ccass   CaSS
+#define CaSR    color1.b
+#define I_SumCa color1.a 
+
+#define sm      color2.r
+#define sh      color2.g
+#define sj      color2.b
+#define sxs     color2.a
+
+#define sd      color3.r
+#define sRR     color3.g
+#define sf2     color3.b
+#define sfcass  color3.a 
+
+#define sr      color4.r
+#define ss      color4.g
+#define sxr1    color4.b
+#define sxr2    color4.a
+
+#define EPI     0
+#define MYO     1
+#define ENDO    2
+
+
+/*------------------------------------------------------------------------
+ * Rush-Larsen method
+ *------------------------------------------------------------------------
+ */
+#define RushLarsen(a, a_inf, tau_a) (a_inf+((a)-(a_inf))*exp(-dt/(tau_a)))
+
+/*========================================================================
+ * main body of the shader
+ *========================================================================
+ */ 
+void main(){
+    // reading color .....................................................
+    vec4 color0 = texture(icolor0, cc) ;
+    vec4 color1 = texture(icolor1, cc) ;
+    vec4 color2 = texture(icolor2, cc) ;
+    vec4 color3 = texture(icolor3, cc) ;
+    vec4 color4 = texture(icolor4, cc) ;
+    
+/*------------------------------------------------------------------------
+ * parameters
+ *------------------------------------------------------------------------
+ */
+    float Ko=5.4;           float Cao=2.0;          float Nao=140.0 ;
+    float Vc=0.016404;      float Vsr=0.001094;     float Vss=0.00005468 ;
+    float Bufc=0.2;         float Kbufc=0.001;      float Bufsr=10.;
+    float Kbufsr=0.3;       float Bufss=0.4;        float Kbufss=0.00025 ;
+    float Vmaxup=0.006375;  float Kup=0.00025;      float Vrel=0.102 ;
+    float k3=0.060;         float k4=0.005;
+    float k1prime=0.15;     float k2prime=0.045;
+    float EC=1.5;           float maxsr=2.5;        float minsr=1.;
+    float Vleak=0.00036;    float Vxfer=0.0038;
+    float RR=8314.3;        float FF=96486.7;       float TT=310.0;
+//  float RR=8314.472 ;     float FF=96485.3415;    float TT=310.0;
+// try setting CAPACITANCE to 1 and to 1.534e-4, two values others use
+// pretty clearly not 1.534e-4; too small, transients disappear
+//    float CAPACITANCE=0.185 ;
+    float CAPACITANCE=capacitance ;
+//  CAPACITANCE=1.0;
+    float   Gks, Gto ;
+    if (cellType == EPI ){
+        Gks=0.392 ; Gto=0.294 ;
+    } else if (cellType == ENDO ){
+        Gks=0.392;  Gto=0.073 ;
+    }else{
+       Gks=0.098 ; Gto=0.294 ;
+    }
+
+    float Gkr=0.153;    float pKNa=0.03;        
+    float GK1=5.405;    float alphanaca=2.5;
+    float GNa=14.838;   float GbNa=0.00029;     
+    float KmK=1.0;      float KmNa=40.0;
+    float knak=2.724;   float GCaL=0.00003980;  
+    float GbCa=0.000592;
+    float knaca=1000.;  float KmNai=87.5;       
+    float KmCa=1.38;    float ksat=0.1;
+    float n=0.35;       float GpCa=0.1238;      
+    float KpCa=0.0005;  float GpK=0.0146;
+
+/*------------------------------------------------------------------------
+ * helpful values
+ *------------------------------------------------------------------------
+ */
+    float   inverseVcF2=1./(2.*Vc*FF) ;
+    float   inverseVcF=1./(Vc*FF) ;
+    float   inversevssF2=1./(2.*Vss*FF) ;
+    float   rtof=(RR*TT)/FF ;
+    float   fort=1./rtof ;
+    float   KmNai3=KmNai*KmNai*KmNai ;
+    float   Nao3=Nao*Nao*Nao ;
+    float   Gkrfactor=sqrt(Ko/5.4) ;
+
+/*------------------------------------------------------------------------
+ * m
+ *------------------------------------------------------------------------
+ */
+    float   AM      =   1./(1.+exp((-60.-vv)/5.)) ;
+    float   BM      =   0.1/(1.+exp((vv+35.)/5.))
+                    +   0.10/(1.+exp((vv-50.)/200.)) ;
+
+    float   minft   =   1./((1.+exp((-56.86-vv)/9.03))*
+                                (1.+exp((-56.86-vv)/9.03))) ;
+    float   TAU_M   =   AM*BM ;
+    float   exptaumt=   exp(-dt/TAU_M) ;
+
+    float   hinft   =   1./((1.+exp((vv+71.55)/7.43))
+                                *(1.+exp((vv+71.55)/7.43))) ;
+    
+    sm = minft-(minft-sm)*exptaumt ;
+
+/*------------------------------------------------------------------------
+ * h
+ *------------------------------------------------------------------------
+ */
+    float   AH, BH ;
+    if(vv >=-40.){
+        AH=0. ;
+        BH=(0.77/(0.13*(1.+exp(-(vv+10.66)/11.1)))) ;
+    }
+    else{
+        AH=(0.057*exp(-(vv+80.)/6.8)) ;
+        BH=(2.7*exp(0.079*vv)+(3.1e5)*exp(0.3485*vv)) ;
+    }
+    float   TAU_H   =1.0/(AH+BH) ;
+    float   exptauht=exp(-dt/TAU_H) ;
+    
+    sh  = hinft-(hinft-sh)*exptauht ;
+
+/*------------------------------------------------------------------------
+ * j
+ *------------------------------------------------------------------------
+ */
+    float AJ, BJ ;
+    if(vv >=-40.){ 
+        AJ=0. ;
+        BJ=(0.6*exp((0.057)*vv)/(1.+exp(-0.1*(vv+32.)))) ;
+    }
+    else{
+        AJ= (((-2.5428e4)*exp(0.2444*vv)-(6.948e-6)
+                    *exp(-0.04391*vv))*(vv+37.78)
+                    /(1.+exp(0.311*(vv+79.23)))) ;
+        BJ= (0.02424*exp(-0.01052*vv)
+                /(1.+exp(-0.1378*(vv+40.14)))) ;
+    }
+    float   jinft   =   hinft ;
+    float   TAU_J   =   1.0/(AJ+BJ) ;
+    float   exptaujt=exp(-dt/TAU_J) ;
+    
+    sj  = jinft-(jinft-sj)*exptaujt ;
+
+/*------------------------------------------------------------------------
+ * xs
+ *------------------------------------------------------------------------
+ */
+    float   xsinft  =   1./(1.+exp((-5.-vv)/14.)) ;
+    float   Axs     =   (1400./(sqrt(1.+exp((5.-vv)/6.)))) ;
+    float   Bxs     =   (1./(1.+exp((vv-35.)/15.))) ;
+    float   TAU_Xs  =   Axs*Bxs+80. ;
+    float   exptauxst=  exp(-dt/TAU_Xs) ;
+
+    sxs     =   xsinft-(xsinft-sxs)*exptauxst ;
+
+/*------------------------------------------------------------------------
+ * d
+ *------------------------------------------------------------------------
+ */
+    float   dinft   =   1./(1.+exp((-8.-vv)/7.5)) ;
+    float   Ad      =   1.4/(1.+exp((-35.-vv)/13.))+0.25 ;
+    float   Bd      =   1.4/(1.+exp((vv+5.)/5.)) ;
+    float   Cd      =   1./(1.+exp((50.-vv)/20.)) ;
+    float   TAU_D   =   Ad*Bd+Cd ;
+    float   exptaudt=   exp(-dt/TAU_D) ;
+    
+    sd              =   dinft-(dinft-sd)*exptaudt ;
+
+/*------------------------------------------------------------------------
+ * f
+ *------------------------------------------------------------------------
+ */
+    float   finft   =   1./(1.+exp((vv+20.)/7.));
+    float   Af      =   1102.5*exp(-(vv+27.)*(vv+27.)/225.) ;
+    float   Bf      =   200./(1.+exp((13.-vv)/10.)) ;
+    float   Cf      =   (180./(1.+exp((vv+30.)/10.)))+20. ;
+    float   TAU_F   =   Af+Bf+Cf ;
+    float   exptauft=   exp(-dt/TAU_F) ;
+
+    sf              =   finft-(finft-sf)*exptauft ;
+
+
+/*------------------------------------------------------------------------
+ * f2
+ *------------------------------------------------------------------------
+ */
+    float   f2inft  =   0.67/(1.+exp((vv+35.)/7.))+0.33 ;
+//  original code had the following, but paper uses denom of 170**2, not 7**2
+    float   Af2     =   600.*exp(-(vv+25.)*(vv+25.)/49.) ;
+//  paper value for Af2 is INCORRECT to match the figure
+//  float  Af2      =   600.*exp(-(vv+25.)*(vv+25.)/(170.*170.)) ;
+    float   Bf2     =   31./(1.+exp((25.-vv)/10.)) ;
+    float   Cf2     =   16./(1.+exp((vv+30.)/10.)) ;
+    float   TAU_F2  =   Af2+Bf2+Cf2 ;
+    float   exptauf2t=exp(-dt/TAU_F2) ;
+
+    sf2             =   f2inft-(f2inft-sf2)*exptauf2t ;
+
+/*------------------------------------------------------------------------
+ * fcass
+ *------------------------------------------------------------------------
+ */
+    float   fcassinft   =   0.6/(1.+(ccass/0.05)*(ccass/0.05))+0.4 ;
+    float   taufcass    =   80./(1.+(ccass/0.05)*(ccass/0.05))+2. ;
+    float   exptaufcasst=   exp(-dt/taufcass) ;
+    float   exptaufcassinf= exp(-dt/2.0) ;
+ 
+    float   casshi      =   1.0 ;
+    float   FCaSS_INF, exptaufcass ;
+
+    if ( CaSS >= casshi ){
+        FCaSS_INF   =   0.4 ;
+        exptaufcass =   exptaufcassinf ;
+    }else{
+        FCaSS_INF   =   fcassinft ;
+        exptaufcass =   exptaufcasst ;
+    }
+    
+    sfcass          =   FCaSS_INF-(FCaSS_INF-sfcass)*exptaufcass ;
+
+/*------------------------------------------------------------------------
+ * r, s
+ *------------------------------------------------------------------------
+ */
+    float rinft, sinft ;
+    float TAU_R, TAU_S ;
+    if(cellType == EPI){
+        rinft   =   1./(1.+exp((20.-vv)/6.)) ;
+        sinft   =   1./(1.+exp((vv+20.)/5.)) ;
+        TAU_R   =   9.5*exp(-(vv+40.)*(vv+40.)/1800.)+0.8 ;
+        TAU_S   =   85.*exp(-(vv+45.)*(vv+45.)/320.)
+                +   5./(1.+exp((vv-20.)/5.))+3. ;
+    }else if(cellType == ENDO){
+        rinft   =   1./(1.+exp((20.-vv)/6.)) ;
+        sinft   =   1./(1.+exp((vv+28.)/5.)) ;
+        TAU_R   =   9.5*exp(-(vv+40.)*(vv+40.)/1800.)+0.8 ;
+        TAU_S   =   1000.*exp(-(vv+67.)*(vv+67.)/1000.)+8. ;
+    }else{
+        rinft   =   1./(1.+exp((20.-vv)/6.)) ;
+        sinft   =   1./(1.+exp((vv+20.)/5.)) ;
+        TAU_R   =   9.5*exp(-(vv+40.)*(vv+40.)/1800.)+0.8 ;
+        TAU_S   =   85.*exp(-(vv+45.)*(vv+45.)/320.)
+                +   5./(1.+exp((vv-20.)/5.))+3. ;
+    }
+    float   exptaurt    =   exp(-dt/TAU_R) ;
+    float   exptaust    =   exp(-dt/TAU_S) ;
+    sr  = rinft-(rinft-sr)*exptaurt ;
+    ss  = sinft-(sinft-ss)*exptaust ;
+
+/*------------------------------------------------------------------------
+ * xr1, xr2
+ *------------------------------------------------------------------------
+ */
+    float   xr1inft     =   1./(1.+exp((-26.-vv)/7.)) ;
+    float   axr1        =   450./(1.+exp((-45.-vv)/10.)) ;
+    float   bxr1        =   6./(1.+exp((vv-(-30.))/11.5)) ;
+    float   TAU_Xr1     =   axr1*bxr1 ;
+    float   exptauxr1t  =   exp(-dt/TAU_Xr1) ;
+    float   xr2inft     =   1./(1.+exp((vv-(-88.))/24.)) ;
+    float   axr2        =   3./(1.+exp((-60.-vv)/20.)) ;
+    float   bxr2        =   1.12/(1.+exp((vv-60.)/20.)) ;
+    float   TAU_Xr2     =   axr2*bxr2 ;
+    float   exptauxr2t  =   exp(-dt/TAU_Xr2) ;
+    
+    sxr1 = xr1inft-(xr1inft-sxr1)*exptauxr1t ;
+    sxr2 = xr2inft-(xr2inft-sxr2)*exptauxr2t ;
+
+        
+/*========================================================================
+ * reversal potentials
+ *========================================================================
+ */
+    float   Ek      = rtof*(log((Ko/Ki))) ;
+    float   Ena     = rtof*(log((Nao/Nai))) ;
+    float   Eks     = rtof*(log((Ko+pKNa*Nao)/(Ki+pKNa*Nai))) ;
+    float   Eca     = 0.5*rtof*(log((Cao/Cai))) ;
+
+/*========================================================================
+ * INaCa
+ *========================================================================
+ */
+
+/*------------------------------------------------------------------------
+ * I_Na
+ *------------------------------------------------------------------------
+ */
+    float   INa = GNa*sm*sm*sm*sh*sj*(v-Ena) ;
+    INa         = INa*C_Na ;
+/*------------------------------------------------------------------------
+ * I_Kr
+ *------------------------------------------------------------------------
+ */
+    float   IKr = Gkr*Gkrfactor*sxr1*sxr2*(v-Ek) ;
+    IKr         = IKr*C_Kr ;
+
+/*------------------------------------------------------------------------
+ * I_Ks
+ *------------------------------------------------------------------------
+ */
+    float   IKs = Gks*sxs*sxs*(v-Eks) ;
+    IKs         = IKs*C_Ks ;
+
+/*------------------------------------------------------------------------
+ * I_to
+ *------------------------------------------------------------------------
+ */
+    float   Ito = Gto*sr*ss*(v-Ek) ;
+    Ito         = Ito*C_to ;
+
+/*------------------------------------------------------------------------
+ * I_K1
+ *------------------------------------------------------------------------
+ */
+    float   vmek=v-Ek ;
+    float   Ak1 =   0.1/(1.+exp(0.06*(vmek-200.))) ;
+    float   Bk1 =   (3.*exp(0.0002*(vmek+100.))
+                +   exp(0.1*(vmek-10.)))/(1.+exp(-0.5*(vmek))) ;
+    float   ik1coefft=GK1*Ak1/(Ak1+Bk1) ;
+    
+    float   IK1= ik1coefft*(v-Ek) ;
+
+    IK1         = IK1*C_K1 ;
+
+/*------------------------------------------------------------------------
+ * I_pK
+ *------------------------------------------------------------------------
+ */
+    float   ipkcoefft   =   GpK/(1.+exp((25.-vv)/5.98)) ;
+
+    float   IpK         =   ipkcoefft*(v-Ek) ;
+    IpK                 =   IpK*C_pK ;
+
+/*------------------------------------------------------------------------
+ * I_bNa
+ *------------------------------------------------------------------------
+ */
+    float   IbNa        =   GbNa*(v-Ena) ;
+    IbNa                =   IbNa*C_bNa ;
+
+/*------------------------------------------------------------------------
+ * I_NaK
+ *------------------------------------------------------------------------
+ */
+    float   inakcoefft  =   (1./(1.+0.1245*exp(-0.1*vv*fort)
+                        +   0.0353*exp(-vv*fort)))*knak*(Ko/(Ko+KmK)) ;
+
+    float   INaK        =   inakcoefft*(Nai/(Nai+KmNa)) ;
+    INaK                =   INaK*C_NaK ;
+
+/*------------------------------------------------------------------------
+ * I_NaCa
+ *------------------------------------------------------------------------
+ */
+    float   temp        =   exp((n-1.)*vv*fort) ;
+    float   temp2       =   knaca/((KmNai3+Nao3)*(KmCa+Cao)*(1.+ksat*temp)) ;
+    float   inaca1t     =   temp2*exp(n*vv*fort)*Cao ;
+    float   inaca2t     =   temp2*temp*Nao3*alphanaca ;
+
+    float   INaCa       =   inaca1t*Nai*Nai*Nai-inaca2t*Cai ;
+    INaCa               =   INaCa*C_NaCa ;
+
+
+/*------------------------------------------------------------------------
+ * Na_i
+ *------------------------------------------------------------------------
+ */
+    float   dNai    =   -(INa+IbNa+3.*INaK+3.*INaCa)*inverseVcF*CAPACITANCE ;
+    
+    Nai             =   Nai+dt*dNai ;
+
+/*------------------------------------------------------------------------
+ * K_i
+ *------------------------------------------------------------------------
+ */
+    float   Istim ;
+    Istim = 0.0 ;
+
+    float   dKi =-(Istim+IK1+Ito+IKr+IKs-2.*INaK+IpK)*inverseVcF*CAPACITANCE ;
+    Ki          =   Ki +   dt*dKi ;
+
+/*------------------------------------------------------------------------
+ * ISumNaK
+ *------------------------------------------------------------------------
+ */
+    float   ISumNaK    = INa   + IbNa  + INaK  + IK1 
+                        + IKr   + IKs   + IpK   + Ito ;
+
+/*========================================================================
+ * cssr
+ *========================================================================
+ */
+
+/*------------------------------------------------------------------------
+ * ICaL
+ *------------------------------------------------------------------------
+ */
+    temp    =   exp(2.*(vv-15.)*fort) ;
+    float  ical1t ,  ical2t ;
+    if(abs(vv-15.) < 1.e-4){
+        float diff  = 1.e-4 ; 
+        temp        =   exp(2.*(diff)*fort) ;
+        ical1t      = GCaL*4.*(diff)*(FF*fort)*(0.25*temp)/(temp-1.) ;
+        ical2t      = GCaL*4.*(diff)*(FF*fort)*Cao/(temp-1.) ;
+
+    }else{
+        ical1t      = GCaL*4.*(vv-15.)*(FF*fort)*(0.25*temp)/(temp-1.) ;
+        ical2t      = GCaL*4.*(vv-15.)*(FF*fort)*Cao/(temp-1.) ;
+    }
+
+    float   ICaL    = sd*sf*sf2*sfcass*(ical1t*CaSS-ical2t) ;
+    ICaL *= C_CaL ;
+
+/*------------------------------------------------------------------------
+ * IpCa
+ *------------------------------------------------------------------------
+ */
+    float   IpCa    =   GpCa*Cai/(KpCa+Cai) ;
+    IpCa *= C_pCa ;
+
+/*------------------------------------------------------------------------
+ * IbCa
+ *------------------------------------------------------------------------
+ */
+    float   IbCa    = GbCa*(vv-Eca) ;
+    IbCa *= C_bCa ;
+
+/*------------------------------------------------------------------------
+ * update concentrations
+ *------------------------------------------------------------------------
+ */
+    float   kCaSR   =   maxsr-((maxsr-minsr)/(1.+(EC/CaSR)*(EC/CaSR))) ;
+    float   k1      =   k1prime/kCaSR ;
+    float   k2      =   k2prime*kCaSR ;
+    float   dRR     =   k4*(1.-sRR)-k2*CaSS*sRR ;
+    sRR             =   sRR+dt*dRR ;
+    float   sOO     =   k1*CaSS*CaSS*sRR/(k3+k1*CaSS*CaSS) ;
+
+
+/*------------------------------------------------------------------------
+ * Intracellular currents
+ *------------------------------------------------------------------------
+ */
+    float   Irel    =   C_rel*Vrel*sOO*(CaSR-CaSS) ;
+    float   Ileak   =   C_leak*Vleak*(CaSR-Cai) ;
+    float   Iup     =   C_up*Vmaxup/(1.+((Kup*Kup)/(Cai*Cai))) ;
+    float   Ixfer   =   C_xfer*Vxfer*(CaSS-Cai) ;
+
+/*------------------------------------------------------------------------
+ * update concentrations
+ *------------------------------------------------------------------------
+ */
+    float   CaCSQN  =   Bufsr*CaSR/(CaSR+Kbufsr) ;
+    float   dCaSR   =   dt*(Iup-Irel-Ileak) ;
+    float   bjsr    =   Bufsr-CaCSQN-dCaSR-CaSR+Kbufsr ;
+    float   cjsr    =   Kbufsr*(CaCSQN+dCaSR+CaSR) ;
+    CaSR            =   (sqrt(bjsr*bjsr+4.*cjsr)-bjsr)/2. ;
+
+    float   CaSSBuf =   Bufss*CaSS/(CaSS+Kbufss) ;
+    float   dCaSS   =   dt*(-Ixfer*(Vc/Vss)+Irel*(Vsr/Vss)
+                    +   (-ICaL*inversevssF2*CAPACITANCE)) ;
+    float   bcss    =   Bufss-CaSSBuf-dCaSS-CaSS+Kbufss ;
+    float   ccss    =   Kbufss*(CaSSBuf+dCaSS+CaSS) ;
+    CaSS            =   (sqrt(bcss*bcss+4.*ccss)-bcss)/2. ;
+
+    float   CaBuf   =   Bufc*Cai/(Cai+Kbufc) ;
+    float   dCai    =   dt*(    (   -(IbCa+IpCa-2.*INaCa)
+                                    *inverseVcF2
+                                    *CAPACITANCE 
+                                )
+                                -(Iup-Ileak)
+                                *(Vsr/Vc)
+                                +
+                                Ixfer
+                            ) ;
+    float   BC      =   Bufc-CaBuf-dCai-Cai+Kbufc ;
+    float   CC      =   Kbufc*(CaBuf+dCai+Cai) ;
+    Cai             =   (sqrt(BC*BC+4.*CC)-BC)/2. ;
+
+/*------------------------------------------------------------------------
+ * I_SumCa
+ *------------------------------------------------------------------------
+ */
+    float   ISumCa  = ICaL + IpCa + IbCa ;
+
+/*------------------------------------------------------------------------
+ * I_sum
+ *------------------------------------------------------------------------
+ */
+    float I_sum =  ISumCa + ISumNaK + INaCa ;
+
+/*------------------------------------------------------------------------
+ * Laplacian of voltage
+ *------------------------------------------------------------------------
+ */
+
+    vec2 size = vec2(textureSize( icolor0, 0).xy) ;
+    vec2 ii = vec2(1.,0.)/size ;
+    vec2 jj = vec2(0.,1.)/size ;
+
+    float oodx = size.x/ds_x ;
+    float oody = size.y/ds_y ;
+
+    float laplacian = (
+            texture( icolor0, cc+ii) 
+        +   texture( icolor0, cc-ii) 
+        +   texture( icolor0, cc+jj) 
+        +   texture( icolor0, cc-jj) 
+        -4.*texture( icolor0, cc   )).r*oodx*oodx ; 
+
+    // updatinng membrane potentia .......................................
+    float dv2dt = laplacian*diffCoef - I_sum/C_m ;
+    V += dv2dt*dt ;
+
+    // outputting colors .................................................
+    ocolor0 = vec4(color0) ;
+    ocolor1 = vec4(color1) ;
+    ocolor2 = vec4(color2) ;
+    ocolor3 = vec4(color3) ;
+    ocolor4 = vec4(color4) ;
+}
+
+
+</script><!-- end of comp shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='click' type='x-shader-fragment'>#version 300 es
+precision highp float ;
+precision highp int ;
+
+uniform sampler2D   inTexture ;
+uniform vec2        clickPosition ;
+uniform float       clickRadius ;
+
+in vec2 cc, pixPos ;
+
+layout (location = 0) out vec4 ocolor ;
+
+#define u       color.r
+// Main body of the shader
+void main() {
+    vec2  size  = vec2(textureSize(inTexture, 0)) ;
+
+    // read the color of the pixel .......................................
+    vec4 color = texture( inTexture , cc ) ;
+ 
+    if ( length(clickPosition - cc )< clickRadius ){
+        u = 1. ;
+    }
+
+    // output the color of the pixel .....................................
+    ocolor = color ;
+    return ;
+}
+
+
+
+</script><!-- end of click shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='display' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * display.frag : calculate the colors for the various regions of
+ * activation
+ *
+ * PROGRAMMER   : ABOUZAR KABOUDIAN
+ * DATE         : Mon 19 Oct 2020 14:23:21 (EDT)
+ * PLACE        : Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+precision highp float ;
+precision highp int ;
+
+// interface variables ---------------------------------------------------
+in vec2 cc ;
+uniform sampler2D   inColor ;
+uniform float       uThreshold, vThreshold ;
+uniform float       thickness ;
+
+layout (location=0) out vec4 ocolor ;
+
+// macros ----------------------------------------------------------------
+#define ut  uThreshold
+#define vt  vThreshold
+
+#define u   color.r
+#define v   color.g
+
+/*========================================================================
+ * main body 
+ *========================================================================
+ */
+void main(){
+    vec4 color = texture(inColor , cc ) ;
+
+    float f = (u>ut) ? 1. : 0. ;
+    float g = (v<vt) ? 1. : 0. ;
+
+    if ( f>0.5 && g >0.5 ){
+        ocolor = vec4(vec3(96., 192., 240.)/255.,1.) ;
+        return ;
+    }
+
+    if ( f > 0.5 ){
+        ocolor = vec4(vec3(240., 72., 72.)/255.,1.) ;
+        return ;
+    }
+
+    if ( g >0.5 ){
+        ocolor =  vec4(vec3(240., 192., 72.)/255.,1.) ;
+        return ;
+    }
+
+    ocolor = vec4(vec3(255., 255., 240.)/255.,1.) ;
+    return ;
+}
+
+
+</script><!-- end of display shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='defib' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * defib.frag   : Defibrillation shader
+ *
+ * PROGRAMMER   : ABOUZAR KABOUDIAN
+ * DATE         : Mon 19 Oct 2020 14:18:47 (EDT)
+ * PLACE        : Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+precision highp float ;
+precision highp int ;
+
+// interface variables ---------------------------------------------------
+in vec2 cc ;
+uniform sampler2D   inColor ;
+uniform float uThreshold, vThreshold ;
+uniform float thickness ;
+
+layout (location=0) out vec4 ocolor ;
+
+// macros ----------------------------------------------------------------
+
+#define ut  uThreshold
+#define vt  vThreshold
+
+#define u   color.r
+#define v   color.g
+
+#define noThetaDivs 20.
+
+/*========================================================================
+ * main body
+ *========================================================================
+ */
+void main(){
+    vec4 color = texture(inColor , cc ) ;
+    vec4 col ;
+
+    float f = (u>ut) ? 1. : -1. ;
+    float g = (v<vt) ? 1. : -1. ;
+    
+    float pi = acos(-1.) ;
+    vec2  dir ;
+    float theta ;
+
+    if (f<0. && g<0. ){
+        // search around the point to see if the point is in the region
+        // which requires stimulation
+        for(float i=0. ; i<noThetaDivs ;i+=1.){
+            theta = 2.*i*pi/noThetaDivs ;
+            dir = thickness*vec2(cos(theta),sin(theta)) ;
+            col = texture(inColor, cc + dir ) ;
+
+            if ( (((col.g<vt) ? 1. : -1.) *g) < 0. ){
+                u = 1. ;
+                break ;
+            }
+        }
+    }
+    
+    ocolor = vec4(color) ;
+    return ;
+}
+
+
+</script><!-- end of defib shader's source code -->
+
+
+
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<!-- main script - JavaScript code                                     -->
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<script>
+/*========================================================================
+ * get the source code for fragment shaders
+ *========================================================================
+ */
+function source( id ){
+    return document.getElementById( id ).innerHTML ;
+}
+var env = {} ; // Global variable
+
+/*========================================================================
+ * loadWebGL code
+ *========================================================================
+ */ 
+function loadWebGL(){
+    env.width  = 512 ;
+    env.height = 512 ;
+    env.time   = 0. ;
+
+/*------------------------------------------------------------------------
+ * creating textures for time stepping 
+ *------------------------------------------------------------------------
+ */
+    env.fcolor0 = new Abubu.Float32Texture( env.width, env.height ) ;
+    env.fcolor1 = new Abubu.Float32Texture( env.width, env.height ) ;
+    env.fcolor2 = new Abubu.Float32Texture( env.width, env.height ) ;
+    env.fcolor3 = new Abubu.Float32Texture( env.width, env.height ) ;
+    env.fcolor4 = new Abubu.Float32Texture( env.width, env.height ) ;
+
+    env.scolor0 = new Abubu.Float32Texture( env.width, env.height ) ;
+    env.scolor1 = new Abubu.Float32Texture( env.width, env.height ) ;
+    env.scolor2 = new Abubu.Float32Texture( env.width, env.height ) ;
+    env.scolor3 = new Abubu.Float32Texture( env.width, env.height ) ;
+    env.scolor4 = new Abubu.Float32Texture( env.width, env.height ) ;
+
+    env.fcolors = 
+        [   env.fcolor0, 
+            env.fcolor1, 
+            env.fcolor2, 
+            env.fcolor3, 
+            env.fcolor4 ] ;
+    env.scolors = 
+        [   env.scolor0, 
+            env.scolor1, 
+            env.scolor2, 
+            env.scolor3, 
+            env.scolor4 ] ;
+
+    env.colors = [ ...env.fcolors, ...env.scolors ] ;
+    for(var i=0; i< env.colors.length ; i++){
+        env.colors[i].pairable = true ;
+    }
+
+    function TpTargets( colors ){
+        this.ocolor0 = { location : 0 , target : colors[0] } ;
+        this.ocolor1 = { location : 1 , target : colors[1] } ;
+        this.ocolor2 = { location : 2 , target : colors[2] } ;
+        this.ocolor3 = { location : 3 , target : colors[3] } ;
+        this.ocolor4 = { location : 4 , target : colors[4] } ;
+    }
+/*------------------------------------------------------------------------
+ * Initial conditions  
+ *------------------------------------------------------------------------
+ */
+    env.finit = new Abubu.Solver({
+        fragmentShader : source('init') ,
+        targets : new TpTargets( env.fcolors ) , 
+    } ) ;
+    env.sinit = new Abubu.Solver({
+        fragmentShader : source('init') ,
+        targets : new TpTargets( env.scolors ) ,
+    } ) ;
+
+    // function to initialize solution ...................................
+    env.initialize = function(){
+        env.finit.run() ;
+        env.sinit.run() ;
+
+        env.splot.init() ;
+        env.pplot.init() ;
+        env.vsgn.init(0) ;
+        env.osgn.init(0) ;
+
+        env.time = 0. ;
+    }
+
+/*------------------------------------------------------------------------
+ * marching steps 
+ *------------------------------------------------------------------------
+ */
+    env.ds_x        =   12 ;
+    env.ds_y        =   12 ;
+    env.C_Na        =   1.0 ;
+    env.C_NaCa      =   1.0 ;
+    env.C_to        =   1.0 ;
+    env.C_CaL       =   1.0 ;
+    env.C_Kr        =   1.0 ;
+    env.C_Ks        =   1.0 ;
+    env.C_K1        =   1.0 ;
+    env.C_NaK       =   1.0 ;
+    env.C_bNa       =   1.0 ;
+    env.C_pK        =   1.0 ;
+    env.C_bCa       =   1.0 ;
+    env.C_pCa       =   1.0 ;
+    env.C_leak      =   1.0 ;
+    env.C_up        =   1.0 ;
+    env.C_rel       =   1.0 ;
+    env.C_xfer      =   1.0 ;
+    env.dt          = 0.05 ;
+    env.capacitance = 0.185,
+    env.C_m         = 1.0 ;
+    env.diffCoef    = 0.001 ;
+    env.cellType    = 0 ; // mid : 0, epi:1, endo :2 
+
+    // uniforms to be sent to the two marching solvers
+    var compUniforms = function(_cs){
+        this.icolor0    = { type : 't', value : _cs[0]          } ;
+        this.icolor1    = { type : 't', value : _cs[1]          } ;
+        this.icolor2    = { type : 't', value : _cs[2]          } ;
+        this.icolor3    = { type : 't', value : _cs[3]          } ;
+        this.icolor4    = { type : 't', value : _cs[4]          } ;
+        this.ds_x       = { type : 'f', value : env.ds_x        } ;
+        this.ds_y       = { type : 'f', value : env.ds_y        } ;
+        this.C_Na       = { type : 'f', value : env.C_Na        } ;
+        this.C_NaCa     = { type : 'f', value : env.C_NaCa      } ;
+        this.C_to       = { type : 'f', value : env.C_to        } ;
+        this.C_CaL      = { type : 'f', value : env.C_CaL       } ;
+        this.C_Kr       = { type : 'f', value : env.C_Kr        } ;
+        this.C_Ks       = { type : 'f', value : env.C_Ks        } ;
+        this.C_K1       = { type : 'f', value : env.C_K1        } ;
+        this.C_NaK      = { type : 'f', value : env.C_NaK       } ;
+        this.C_bNa      = { type : 'f', value : env.C_bNa       } ;
+        this.C_pK       = { type : 'f', value : env.C_pK        } ;
+        this.C_bCa      = { type : 'f', value : env.C_bCa       } ;
+        this.C_pCa      = { type : 'f', value : env.C_pCa       } ;
+        this.C_leak     = { type : 'f', value : env.C_leak      } ;
+        this.C_up       = { type : 'f', value : env.C_up        } ;
+        this.C_rel      = { type : 'f', value : env.C_rel       } ;
+        this.C_xfer     = { type : 'f', value : env.C_xfer      } ;
+        this.dt         = { type : 'f', value : env.dt          } ;
+        this.capacitance= { type : 'f', value : env.capacitance } ;
+        this.C_m        = { type : 'f', value : env.C_m         } ;
+        this.diffCoef   = { type : 'f', value : env.diffCoef    } ;
+        this.cellType   = { type : 'i', value : env.cellType    } ;
+    } ;
+
+    // reads fcolors and writes scolors ..................................
+    env.fcomp = new Abubu.Solver({
+        fragmentShader : source('comp') ,
+        uniforms : new compUniforms( env.fcolors ) ,
+        targets : new TpTargets( env.scolors ) ,
+    } ) ;
+
+    // reads scolors and writes fcolors ..................................
+    env.scomp = new Abubu.Solver({
+        fragmentShader : source('comp') ,
+        uniforms : new compUniforms( env.scolors ) ,
+        targets : new TpTargets( env.fcolors ) ,
+    } ) ;
+
+    // marches the solution for two time steps ...........................
+    env.march = function(){
+        env.fcomp.render() ;
+        env.scomp.render() ;
+        env.time += 2.*env.dt ;
+    } ;
+
+/*------------------------------------------------------------------------
+ * click to excite 
+ *------------------------------------------------------------------------
+ */
+    var click = new Abubu.Solver({
+        fragmentShader : source( 'click' ) ,
+        uniforms : {
+            inTexture       : { type : 't', value  : env.fcolor0    } ,
+            clickRadius     : { type : 'f', value  : 0.1            } ,
+            clickPosition   : { type : 'v2', value : [0.5,0.5]      } ,
+        } ,
+        targets : {
+            ocolor : { location : 0 , target : env.scolor1 } ,
+        }
+    } ) ;
+    
+    var clickCopy = new Abubu.Copy( env.scolor1, env.fcolor0 ) ;
+    
+    var mouseDrag_1 = new Abubu.MouseListener({
+        canvas : document.getElementById('canvas_1') ,
+        event : 'drag' ,
+        callback : function(e){
+            click.uniforms.clickPosition.value = e.position ;
+            click.render() ;
+            clickCopy.render() ;
+        }
+    } ) ; 
+
+    var mouseDrag_2 = new Abubu.MouseListener({
+        canvas : document.getElementById('canvas_2') ,
+        event : 'drag' ,
+        callback : function(e){
+            click.uniforms.clickPosition.value = e.position ;
+            click.render() ;
+            clickCopy.render() ;
+        }
+    } ) ; 
+/*------------------------------------------------------------------------
+ * shift-click to set probe position 
+ *------------------------------------------------------------------------
+ */
+
+    var setProbe_1 = new Abubu.MouseListener({
+        canvas : document.getElementById('canvas_1') ,
+        event  : 'click' ,
+        shift  : true ,
+        callback : function(e){
+            env.pplot.probePosition = e.position ;
+            env.pplot.init() ;
+            env.vplot.setProbePosition(e.position) ;
+            env.splot.setProbePosition(e.position) ;
+            env.splot.init() ;
+            env.pplot.init() ;
+            env.vplot.init() ;
+        }
+    } ) ;
+
+    var setProbe_2 = new Abubu.MouseListener({
+        canvas : document.getElementById('canvas_2') ,
+        event  : 'click' ,
+        shift  : true ,
+        callback : function(e){
+            env.pplot.probePosition = e.position ;
+            env.pplot.init() ;
+            env.vplot.setProbePosition(e.position) ;
+            env.splot.setProbePosition(e.position) ;
+            env.splot.init() ;
+            env.pplot.init() ;
+            env.vplot.init() ;
+        }
+    } ) ;
+
+/*------------------------------------------------------------------------
+ * defibrilate 
+ *------------------------------------------------------------------------
+ */
+    env.defib = {} ;
+    env.thickness  = 0.05 ;
+    env.uThreshold = -20 ;
+    env.vThreshold = 0.25 ;
+
+    env.defib_s1 = new Abubu.Solver({
+        fragmentShader : source('defib') ,
+        uniforms :{
+            inColor : { type : 's', value : env.fcolor0, 
+                        magFilter: 'linear' } ,
+            thickness  : { type : 'f', value : env.thickness   } ,
+            uThreshold : { type : 'f', value : env.uThreshold  } ,
+            vThreshold : { type : 'f', value : env.vThreshold  } ,
+        } ,
+        targets : {
+            ocolor : { location : 0 , target : env.scolor0 } ,
+        }
+    } ) ;
+    
+    env.defib_s2 = new Abubu.Copy(env.scolor0, env.fcolor0) ;
+    env.defibrillate = function(){
+        env.defib_s1.render() ;
+        env.defib_s2.render() ;
+    }
+/*------------------------------------------------------------------------
+ * save and load file 
+ *------------------------------------------------------------------------
+ */
+
+    // save file .........................................................
+    env.csvFileName = 'colorsSets_0_4.csv' ;
+    env.saveCsvFile = function(){
+        var link = document.createElement('a') ;
+        var data = "data:text;charset=utf-8," +
+            env.fcolor0.width + ',' + 
+            env.fcolor0.height ;
+        var width = env.fcolor0.width ;
+        var height = env.fcolor0.height ;
+        var f0 = env.fcolor0.value ;
+        var f1 = env.fcolor1.value ;
+        var f2 = env.fcolor2.value ;
+        var f3 = env.fcolor3.value ;
+        var f4 = env.fcolor4.value ;
+
+        for(var i=0 ; i<(width*height) ; i++){
+            var indx = i*4 ;
+            data += ','+ 
+                f0[indx  ].toExponential()+ ',' +
+                f0[indx+1].toExponential()+ ',' +
+                f0[indx+2].toExponential()+ ',' +
+                f0[indx+3].toExponential()+ ',' +
+                f1[indx  ].toExponential()+ ',' +
+                f1[indx+1].toExponential()+ ',' +
+                f1[indx+2].toExponential()+ ',' +
+                f1[indx+3].toExponential()+ ',' +
+                f2[indx  ].toExponential()+ ',' +
+                f2[indx+1].toExponential()+ ',' +
+                f2[indx+2].toExponential()+ ',' +
+                f2[indx+3].toExponential()+ ',' +
+                f3[indx  ].toExponential()+ ',' +
+                f3[indx+1].toExponential()+ ',' +
+                f3[indx+2].toExponential()+ ',' +
+                f3[indx+3].toExponential()+ ',' +
+                f4[indx  ].toExponential()+ ',' +
+                f4[indx+1].toExponential()+ ',' +
+                f4[indx+2].toExponential()+ ',' +
+                f4[indx+3].toExponential() ;
+        }
+        
+        var csv = encodeURI( data ) ;
+        link.setAttribute( 'href', csv ) ;
+        link.setAttribute( 'download', env.csvFileName ) ;
+        link.click() ;
+    }
+
+    // load file .........................................................
+    env.loadCsvFile = document.createElement('input') ;
+    env.loadCsvFile.setAttribute('type', 'file') ;
+    env.loadCsvFile.onchange = function(){
+        /* check if a no file was selected */
+        if ( !env.loadCsvFile.files[0] ){        
+            return ;
+        } ;
+    
+        var file = env.loadCsvFile.files[0] ;
+        var reader = new FileReader() ;
+        reader.readAsText(file) ;
+    
+        // only the when the file is loaded it can be analyzed
+        reader.onload = function(event){
+            var result  = event.target.result ;
+            var data = result.split(',') ;
+    
+            var width = parseInt(data[0]) ;
+            var height = parseInt(data[1]) ;
+    
+            var tabs = [] ;
+            for(var i = 0 ; i<5 ; i++){
+                tabs.push( new Float32Array(width*height*4) ) ;
+            }
+            
+            var p = 2 ;
+            var indx ;
+
+            for (var i=0 ; i< (width*height) ; i++){ // modify accordingly
+                indx = i*4 ;
+                for(var j=0 ; j< 5 ; j++){
+                    tabs[j][ indx   ] = parseFloat( data[p++]) ;
+                    tabs[j][ indx+1 ] = parseFloat( data[p++]) ;
+                    tabs[j][ indx+2 ] = parseFloat( data[p++]) ;
+                    tabs[j][ indx+3 ] = parseFloat( data[p++]) ;
+                }
+             }
+
+            for( var j=0 ; j<5; j++){
+                env.fcolors[j].data = tabs[j] ;
+                env.scolors[j].data = tabs[j] ;
+            }
+        }
+    }
+    
+/*------------------------------------------------------------------------
+ * Postprocessing 
+ *------------------------------------------------------------------------
+ */
+    // voltage plot ------------------------------------------------------
+    env.vplot = new Abubu.Plot2D({
+        target : env.fcolor0 ,
+        channel: 'r' ,
+        minValue : -90 ,
+        maxValue : 30 ,
+        colorbar : true ,
+        probeVisible : true ,
+        canvas : document.getElementById('canvas_1') ,
+    } ) ;
+    env.vplot.init() ;
+
+    // tplot -------------------------------------------------------------
+    env.tplot = new Abubu.Solver({
+        fragmentShader : source("display") ,
+        uniforms : {
+            inColor : { type : 't', value : env.fcolor0 } ,
+            thickness  : { type : 'f', value : env.thickness   } ,
+            uThreshold : { type : 'f', value : env.uThreshold  } ,
+            vThreshold : { type : 'f', value : env.vThreshold  } ,
+        } ,
+        canvas :  document.getElementById('canvas_2') 
+    } ) ;
+
+    // signal plots ------------------------------------------------------
+    env.splot = new Abubu.SignalPlot({
+        noPltPoints : 1024, // number of sample points
+        grid : 'on', 
+        nx   : 10 , // number of division in x 
+        ny   : 12 , // ... in y 
+
+        xticks : {  mode : 'auto', unit : 'ms', font : '11pt Times' } ,
+        yticks : {  mode : 'auto', unit : '' , 
+                    font : '12pt Times',precision : 1  } ,
+        canvas : document.getElementById('canvas_3') 
+    } ) ;
+
+    env.osgn = env.splot.addSignal( env.fcolor0, {
+            channel : 'g',
+            minValue : -.1,
+            maxValue : 1.1 ,
+            restValue : 0. ,
+            color : [ 0.3,0.,0.0 ],
+            visible : true ,
+            timewindow : 1000 , 
+            probePosition : [0.5,0.5] 
+    } ) ;
+
+    // voltage signal ....................................................
+    env.vsgn = env.splot.addSignal( env.fcolor0, {
+            channel : 'r',
+            minValue : -90,
+            maxValue : 30 ,
+            restValue : -83.0 ,
+            color : [ 0.,.4,0.0 ],
+            visible : true ,
+            timewindow : 1000 , 
+            probePosition : [0.5,0.5] 
+    } ) ;
+
+    // updateSignals -----------------------------------------------------
+    env.updateSignals= function(){
+        env.vsgn.update(env.time) ;
+        env.osgn.update(env.time) ;
+    }
+
+    // phase plot --------------------------------------------------------
+    env.pplot = new Abubu.PhasePlot({
+        canvas : document.getElementById('canvas_4') ,
+        grid : 'on',
+        probePosition : [0.5,0.5], 
+    
+        // horizontal axis info
+        xcolor      : env.fcolor0 ,
+        xchannel    : 'g' ,
+        xmin        : -.1 ,
+        xmax        : 1.1 ,
+        nx          : 12, 
+    
+        // vertical axis info
+        ycolor      : env.fcolor0 ,
+        ychannel    : 'r' ,
+        ymin        : -90 ,
+        ymax        : 30 ,
+        ny          : 12, 
+    
+        // xticks
+        xticks : {  
+            mode : 'auto', 
+            unit : '', 
+            font : '11pt Times' , precision : 2 } ,
+        
+        // yticks
+        yticks : {  
+            mode : 'auto', unit : '', font : '11pt Times', 
+            precision : 1 } ,
+    }) ; 
+
+
+    // refreshDisplay ----------------------------------------------------
+    env.refreshDisplay = function(){
+        env.pplot.render() ;
+        env.vplot.render() ;
+        env.splot.render() ;
+        env.tplot.render() ;
+    }
+
+/*------------------------------------------------------------------------
+ * Run sequence
+ *------------------------------------------------------------------------
+ */
+    env.skip = 30 ;
+    env.running = false ;
+    env.run = function(){
+        if (env.running){
+            for(var i = 0 ; i<env.skip ; i++){
+                env.march() ;
+                env.updateSignals() ; 
+                if( i%5 === 0 ){
+                    env.pplot.update() ;
+                }
+            }
+        }
+        env.refreshDisplay() ;
+        requestAnimationFrame(env.run) ;
+    }
+
+    createGui() ;
+    env.initialize() ;
+    env.run() ;
+}
+
+/*========================================================================
+ * add multiple parameters to the GUI
+ *========================================================================
+ */ 
+function addToGui( 
+        guiElemenent ,  // gui element to add options into
+        obj,            // object that holds parameters
+        paramList,      // array of strings that contains list 
+                        // of parmeters to be added
+        solverList      // array of solvers that need to be update upon 
+                        // change of a parameter through gui interactions
+    ){
+    var elements = {} ;
+    for(i in paramList){
+        var param = paramList[i] ;
+        elements[param] = guiElemenent.add(obj, param )  ;
+        elements[param].onChange(function(){
+            console.log(this) ;
+            Abubu.setUniformInSolvers( 
+                    this.property , // this refers to the GUI element 
+                    this.object[this.property] , 
+                    solverList ) ;
+        } ) ;
+    }
+    return elements ;
+}
+
+/*========================================================================
+ * createGui
+ *========================================================================
+ */ 
+function createGui(){
+    var gui = new Abubu.Gui() ;     /*  create a graphical user 
+                                        interface               */
+    var panel = gui.addPanel() ;    /*  add a panel to the GUI  */
+
+    // model parameters ..................................................
+    var mdl = panel.addFolder("Model Parameters") ;
+    addToGui(mdl, env,[ ], [env.fcomp, env.scomp] ) ;
+
+    // defibrilation -----------------------------------------------------
+    var dfb = panel.addFolder("Defibrillation") ;
+    dfb.elements = addToGui( dfb, env, 
+        [
+            "thickness" ,
+            "uThreshold" ,
+            "vThreshold" 
+        ] , [ env.defib_s1, env.tplot ] ) ;
+   
+    dfb.add(env,'defibrillate') ;
+    dfb.open() ;
+    
+    // csv files ---------------------------------------------------------
+    var csv = panel.addFolder('Save and Load CSV') ;
+    csv.add(env,'csvFileName' ) ;
+    csv.add(env,'saveCsvFile' ) ;
+    csv.add(env.loadCsvFile , 'click').name('loadCsvFile') ;
+
+    // execution .........................................................
+    var exe = panel.addFolder('Execution') ;
+    exe.add(env,'time').listen() ;
+    exe.add(env,'skip') ;
+    exe.add(env,'initialize') ;
+    exe.add(env,'running') ;
+    exe.open() ;
+}
+
+</script>
+
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<!-- body of the html page                                             -->
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<body onload='loadWebGL();'>
+    <h1>The TP Model</h1>
+    <table>
+        <tr>
+            <td>
+                <canvas id=canvas_1 width=512 height=512>
+                    Your browser doesn't support HTML5.0
+                </canvas>
+            </td>
+            <td>
+                <canvas id=canvas_2 width=512 height=512>
+                    Your browser doesn't support HTML5.0
+                </canvas>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <canvas id=canvas_3 width=512 height=512>
+                    Your browser doesn't support HTML5.0
+                </canvas>
+            </td>
+            <td>
+                <canvas id=canvas_4 width=512 height=512>
+                    Your browser doesn't support HTML5.0
+                </canvas>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

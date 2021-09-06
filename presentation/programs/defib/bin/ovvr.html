@@ -1,0 +1,2777 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OVVR</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <script src='https://abubujs.org/libs/Abubu.latest.js' 
+	    type='text/javascript'></script>
+
+<style>
+/* unvisited link */
+a:link {
+    	color: blue;
+}
+
+/* visited link */
+a:visited {
+    	color: blue;
+}
+
+/* mouse over link */
+a:hover {
+    	color: hotpink;
+}
+
+/* selected link */
+a:active {
+    	color: blue;
+}
+/*
+li{
+    	margin : 10px 6px ;
+} */
+
+body {
+	counter-reset: h1;
+}
+
+
+h1{
+        max-width: 1024px ;
+	text-align:left;
+	color: white;
+       	background-color: #00254c;
+       	padding-left: 20px ;
+       	padding-top: 10px ;
+       	padding-bottom: 10px ;
+       	border-radius: 10px;
+}
+
+h2 {
+        max-width: 1024px ;
+    	color: #00254c;
+    	background-color: #e5e5e5 ;
+    	padding-left: 20px ;
+    	padding-top: 2.5px ;
+    	padding-bottom: 2.5px ;
+
+    	border-radius: 10px;
+}
+
+h3 {
+        max-width: 1024px ;
+    	color: #00254c;
+    	background-color: #f0f0f0 ;
+    	padding-left: 20px ;
+    	padding-top: 2.5px ;
+    	padding-bottom: 2.5px ;
+    	border-radius: 10px;
+}
+
+h4 {
+        max-width: 1024px ;
+    	color: #00254c;
+    	background-color: #fafafa ;
+    	padding-left: 20px ;
+    	padding-top: 2.5px ;
+    	padding-bottom: 2.5px ;
+    	border-radius: 10px;
+}
+
+p{
+    max-width : 700px  ;
+    padding-left: 10px ;
+}
+canvas.clickable:hover{
+    cursor:pointer ;
+    cursor:hand ;
+}
+
+.footer{
+    position : fixed ; 
+    max-width: 1024px ;
+    border-radius:10px ;
+    left : 0px ;
+    width : 100% ;
+    background-color: #fafafa;
+    color:black ;
+    bottom: 0px ;
+    text-align : left ;
+    font: 'italic 12pt Times' ;
+}
+</style>
+</head>
+
+
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<!-- All shaders included here (codes written in GLSL)                 -->
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+
+<!-- ***************************************************************** -->
+<script id='init1' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * init1.frag   : initialize color-set 0 to 3
+ *
+ * PROGRAMMER   : ABOUZAR KABOUDIAN
+ * DATE         : Tue 27 Oct 2020 18:52:54 (EDT)
+ * PLACE        : Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+precision highp float ;
+precision highp int ;
+
+
+// interface variables ...................................................
+in vec2 cc  ;
+
+// variable macros .......................................................
+#define aCaMK       color0.r
+#define iCaMKfast   color0.g
+#define iCaMKslow   color0.b
+#define d           color0.a
+
+#define ffast       color1.r
+#define fslow       color1.g
+#define fCafast     color1.b 
+#define fCaslow     color1.a
+
+#define jCa         color2.r
+#define fCaMKfast   color2.g
+#define fCaCaMKfast color2.b
+#define n           color2.a
+
+#define xrfast      color3.r
+#define xrslow      color3.g
+#define xs1         color3.b
+#define xs2         color3.b
+
+#define vlt         color4.r
+#define V           color4.r
+#define v           color4.g
+#define xK1         color4.b
+#define CaMKtrap    color4.a
+#define CaMKt       CaMKtrap
+
+#define Cansr       color5.r
+#define Cajsr       color5.g
+#define Cass        color5.b
+#define Cai         color5.a 
+
+#define Kss         color6.r
+#define Ki          color6.g
+#define Nass        color6.b
+#define Nai         color6.a
+
+#define m           color7.r
+#define hfast       color7.g
+#define hslow       color7.b
+#define j           color7.a
+
+#define hCaMKslow   color8.r
+#define jCaMK       color8.g
+#define mL          color8.b
+#define hL          color8.a
+
+#define JrelNP      color9.r
+#define hLCaMK      color9.g
+
+
+#define JrelCaMK    color10.r
+#define sa          color10.g
+#define ifast       color10.b
+#define islow       color10.a
+
+#define tvlt        color11.r
+#define time        color11.g
+
+
+// color outputs .........................................................
+layout (location = 0) out vec4 ocolor0 ; 
+layout (location = 1) out vec4 ocolor1 ; 
+layout (location = 2) out vec4 ocolor2 ; 
+layout (location = 3) out vec4 ocolor3 ; 
+
+/*========================================================================
+ * main body of the shader
+ *========================================================================
+ */
+void main(){
+    // color declarations ................................................
+    vec4 color0, color1, color2, color3,  color4, color5, 
+         color6, color7, color8, color9, color10, color11 ;
+
+    // color initializations .............................................
+    aCaMK       = 0.000515567 ;
+    iCaMKfast   = 0.9999542 ;
+    iCaMKslow   = 0.641861 ;
+    d           = 2.43015e-9 ;
+
+    ffast       = 1.0 ;
+    fslow       = 0.910671 ;
+    fCafast     = 1.0 ;
+    fCaslow     = 0.99982 ;
+    
+    xrfast      = 8.26608e-6 ;
+    xrslow      = 0.453268  ;
+    xs1         = 0.270492 ;
+    xs2         = 0.0001963 ;
+
+    // output color values ...............................................
+    ocolor0 = vec4(color0) ;
+    ocolor1 = vec4(color1) ;
+    ocolor2 = vec4(color2) ;
+    ocolor3 = vec4(color3) ;
+
+    return ;
+}
+
+
+</script><!-- end of init1 shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='init2' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * init2.frag   : initialize color-set 4 to 11
+ *
+ * PROGRAMMER   : ABOUZAR KABOUDIAN
+ * DATE         : Tue 27 Oct 2020 18:52:14 (EDT)
+ * PLACE        : Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+
+precision highp float ;
+precision highp int ;
+
+
+// interface variables ...................................................
+in vec2 cc ;
+
+// variable macros .......................................................
+#define aCaMK       color0.r
+#define iCaMKfast   color0.g
+#define iCaMKslow   color0.b
+#define d           color0.a
+
+#define ffast       color1.r
+#define fslow       color1.g
+#define fCafast     color1.b 
+#define fCaslow     color1.a
+
+#define jCa         color2.r
+#define fCaMKfast   color2.g
+#define fCaCaMKfast color2.b
+#define n           color2.a
+
+#define xrfast      color3.r
+#define xrslow      color3.g
+#define xs1         color3.b
+#define xs2         color3.b
+
+#define vlt         color4.r
+#define V           color4.r
+#define v           color4.g
+#define xK1         color4.b
+#define CaMKtrap    color4.a
+#define CaMKt       CaMKtrap
+
+#define Cansr       color5.r
+#define Cajsr       color5.g
+#define Cass        color5.b
+#define Cai         color5.a 
+
+#define Kss         color6.r
+#define Ki          color6.g
+#define Nass        color6.b
+#define Nai         color6.a
+
+#define m           color7.r
+#define hfast       color7.g
+#define hslow       color7.b
+#define j           color7.a
+
+#define hCaMKslow   color8.r
+#define jCaMK       color8.g
+#define mL          color8.b
+#define hL          color8.a
+
+#define JrelNP      color9.r
+#define hLCaMK      color9.g
+
+
+#define JrelCaMK    color10.r
+#define sa          color10.g
+#define ifast       color10.b
+#define islow       color10.a
+
+#define tvlt        color11.r
+#define time        color11.g
+
+
+// color outputs .........................................................
+layout (location = 0) out vec4 ocolor4 ; 
+layout (location = 1) out vec4 ocolor5 ; 
+layout (location = 2) out vec4 ocolor6 ; 
+layout (location = 3) out vec4 ocolor7 ; 
+layout (location = 4) out vec4 ocolor8 ; 
+layout (location = 5) out vec4 ocolor9 ; 
+layout (location = 6) out vec4 ocolor10; 
+
+/*========================================================================
+ * main body of the shader
+ *========================================================================
+ */
+void main(){
+    // color declarations ................................................
+    vec4 color0, color1, color2, color3,  color4, color5, 
+         color6, color7, color8, color9,  color10 ;
+
+    // color initializations .............................................
+    m           = 0.0074621 ;
+    hfast       = 0.692591  ;
+    hslow       = 0.692574  ;
+    j           = 0.692477  ;
+
+    hCaMKslow   = 0.448501    ;   
+    jCaMK       = 0.692413    ;   
+    mL          = 0.000194015 ;
+    hL          = 0.496116    ;
+
+    JrelNP      = 2.53943e-5  ;
+    hLCaMK      = 0.265885   ;
+
+    JrelCaMK    = 3.17262e-7 ;
+    sa          = 0.00101185 ;
+    ifast       = 0.999542   ;
+    islow       = 0.589579   ;
+
+    vlt         = -87.84 ;
+    v           = hslow ;
+
+    Cansr       = 1.61 ;  
+    Cajsr       = 1.56 ;   
+    Cass        = 8.43e-5 ;
+    Cai         = 8.54e-5;
+
+    Kss         = 143.79 ; 
+    Ki          = 143.79 ;
+    Nass        = 7.23   ; 
+    Nai         = 7.23   ;
+
+    // output color values ...............................................
+    ocolor4  = vec4( color4  ) ;
+    ocolor5  = vec4( color5  ) ;
+    ocolor6  = vec4( color6  ) ;
+    ocolor7  = vec4( color7  ) ;
+    ocolor8  = vec4( color8  ) ;
+    ocolor9  = vec4( color9  ) ;
+    ocolor10 = vec4( color10 ) ;
+
+    return ;
+}
+
+
+
+</script><!-- end of init2 shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='comp1' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * comp1.frag   : march color-set 0 to 3 for one time step
+ *
+ * PROGRAMMER   : ABOUZAR KABOUDIAN
+ * DATE         : Wed 28 Oct 2020 12:21:16 (EDT)
+ * PLACE        : Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+precision highp float ;
+precision highp int ;
+
+
+// interface variables ...................................................
+in vec2 cc  ;
+
+// uniforms and useful macros ............................................
+
+/* uniform samplers of state variables  */
+uniform sampler2D   
+        icolor0, icolor1, icolor2, icolor3, icolor4,  icolor5, 
+        icolor6, icolor7, icolor8, icolor9, icolor10 ;
+
+uniform float       dt ;                /* time step                */
+uniform float       ds ;                /* domain size in x,y-dir   */
+uniform float       diffCoef ;          /* diffusion coeficient     */
+uniform float       C_m ;               /* membrane capacitance     */
+
+uniform int         cellType ;
+
+/* Extra-cellular concenterations       */
+uniform float       Ca_o, Na_o, K_o ;
+
+/* time factor multipliers              */
+uniform float       Ct_m          ; 
+uniform float       Ct_h          ; 
+uniform float       Ct_j          ; 
+uniform float       Ct_hCaMKslow  ; 
+uniform float       Ct_hslow      ; 
+uniform float       Ct_mL         ; 
+uniform float       Ct_jCaMK      ; 
+uniform float       Ct_hL         ; 
+uniform float       Ct_hLCaMK     ; 
+uniform float       Ct_a          ; 
+uniform float       Ct_ifast      ; 
+uniform float       Ct_islow      ; 
+uniform float       Ct_aCaMK      ; 
+uniform float       Ct_iCaMKfast  ; 
+uniform float       Ct_iCaMKslow  ; 
+uniform float       Ct_d          ; 
+uniform float       Ct_ffast      ; 
+uniform float       Ct_fslow      ; 
+uniform float       Ct_fCafast    ; 
+uniform float       Ct_fCaslow    ; 
+uniform float       Ct_jCa        ; 
+uniform float       Ct_fCaMKfast  ; 
+uniform float       Ct_fCaCaMKfast; 
+uniform float       Ct_n          ; 
+uniform float       Ct_xrfast     ; 
+uniform float       Ct_xrslow     ; 
+uniform float       Ct_xs1        ; 
+uniform float       Ct_xs2        ; 
+uniform float       Ct_xk1        ; 
+uniform float       Ct_relNP      ; 
+uniform float       Ct_relCaMK    ; 
+uniform float       Ct_tr         ; 
+uniform float       Ct_diffCa     ; 
+uniform float       Ct_diffNa     ; 
+uniform float       Ct_diffK      ; 
+
+/* current multipliers                  */
+uniform float       C_Na        ;
+uniform float       C_Nafast    ;
+uniform float       C_Nalate    ;
+uniform float       C_NaCa      ;
+uniform float       C_to        ;
+uniform float       C_CaL       ;
+uniform float       C_CaNa      ;
+uniform float       C_CaK       ;
+uniform float       C_Kr        ;
+uniform float       C_Ks        ;
+uniform float       C_K1        ;
+uniform float       C_NaCai     ;
+uniform float       C_NaCass    ;
+uniform float       C_NaKNa     ;
+uniform float       C_NaKK      ;
+uniform float       C_NaK       ;
+uniform float       C_Nab       ;
+uniform float       C_Kb        ;
+uniform float       C_Cab       ;
+uniform float       C_pCa       ;
+uniform float       C_relNP     ;
+uniform float       C_relCaMK   ;
+uniform float       C_upNP      ;
+uniform float       C_upCaMK    ;
+uniform float       C_leak      ;
+uniform float       C_up        ;
+uniform float       C_tr        ;
+uniform float       C_rel       ;
+uniform float       C_diffCa    ;
+uniform float       C_diffNa    ;
+uniform float       C_diffK     ;
+
+
+/* Scaling Factors                      */
+uniform float       SGNalate ;  
+uniform float       SGto     ;  
+uniform float       SPCa     ;  
+uniform float       SGKr     ;  
+uniform float       SGKs     ;  
+uniform float       SGK1     ;  
+uniform float       SGNaCa   ;  
+uniform float       SGNaK    ;  
+uniform float       SGKb     ;  
+uniform float       SJrel    ;  
+uniform float       SJup     ;  
+uniform float       SCMDN    ;
+
+
+/* macros (of constants)                */
+#define bt          4.75
+#define arel        2.375
+#define btCaMK      5.9375
+#define arekCaMK    2.96875
+
+#define i           0
+#define ss          1
+
+#define kNa1        15.0
+#define kNa2        5.0
+#define kNa3        88.12
+#define kasymm      12.5
+#define omegaNa     6.0e4
+#define omegaCa     6.0e4
+#define omegaNaCa   5.0e3
+#define kCaon       1.5e6
+#define kCaoff      5.0e3
+#define KmCaAct     150.e-6
+
+#define Nao         Na_o
+#define Cao         Ca_o
+#define Ko          K_o
+
+#define qNa         0.5224
+#define qCa         0.1670
+
+//#define Nao         140.0
+//#define Cao         1.8
+//#define Ko          5.4
+
+#define zNa         1.0
+#define zCa         2.0
+#define zK          1.0 
+
+#define gKi         0.75
+#define gKo         0.75
+#define gCai        1.0 
+#define gCao        0.341
+
+#define GNaCa       0.0008
+#define GNa         14.838
+#define Gto         0.02
+
+#define gNai        0.75
+#define gNao        0.75
+
+#define PNab        3.75e-10
+#define PCab        2.5e-8
+#define GpCa        0.0005
+#define PRNaK       0.01833
+
+#define arelCaMK    2.96875
+#define byCaMK      5.9375
+
+#define ACaMK       0.05
+#define bCaMK       0.00068
+#define CaMK0       0.05
+#define KmCaM       0.0015
+#define KmCaMK      0.15
+#define CaMKo       0.05
+
+#define GNafast     75.0
+#define GNalate     0.0075
+
+#define CSQN        10.
+#define KmCSQN      0.8
+#define CMDNI       0.05
+#define KmCMDN      0.00238
+#define TRPN        0.07
+#define KmTRPN      0.0005
+#define tdiffCaCnst 0.2
+
+#define Acap        1.534e-4
+#define Ageo        0.767e-4
+#define vcell       38.0e-6
+#define vss         0.76e-6
+#define vmyo        25.84e-6
+#define vnsr        2.098e-6
+#define vjsr        0.182e-6
+
+#define BSR         0.047
+#define KmBSR       0.00087
+#define BSL         1.124
+#define KmBSL       0.0087
+
+
+#define F           96486.7
+#define R           8314.3
+#define T           310.
+
+#define kp1         949.5
+#define kp2         687.2
+#define kp3         1899.
+#define kp4         639.0
+#define km1         182.4
+#define km2         39.4
+#define km3         79300.0
+#define km4         40.0
+#define KKi         0.5
+#define KKo         0.3582
+#define MgADP       0.05
+#define MgATP       9.8
+#define KMgATP      1.698e-7
+#define H           1.e-7
+#define SP          4.2
+#define KHP         1.698e-7
+#define KNaP        224.0
+#define KKP         292.0
+
+#define K0Nai       9.073        
+#define K0Nao       27.78 
+#define Delta       -0.1550 
+
+const float rtof    = R*T/F ;
+const float fort    = F/(R*T) ;
+
+#define     EPI     1
+#define     ENDO    2
+#define     MID     0
+
+/* raise a number to power 8        */
+float   pow8(float x){
+    return  x*x*x*x*
+            x*x*x*x ;
+}
+
+
+// variable macros .......................................................
+
+#define aCaMK       color0.r
+#define iCaMKfast   color0.g
+#define iCaMKslow   color0.b
+#define d           color0.a
+
+#define ffast       color1.r
+#define fslow       color1.g
+#define fCafast     color1.b 
+#define fCaslow     color1.a
+
+#define jCa         color2.r
+#define fCaMKfast   color2.g
+#define fCaCaMKfast color2.b
+#define n           color2.a
+
+#define xrfast      color3.r
+#define xrslow      color3.g
+#define xs1         color3.b
+#define xs2         color3.b
+
+#define vlt         color4.r
+#define V           color4.r
+#define v           color4.g
+#define xK1         color4.b
+#define CaMKtrap    color4.a
+#define CaMKt       CaMKtrap
+
+#define Cansr       color5.r
+#define Cajsr       color5.g
+#define Cass        color5.b
+#define Cai         color5.a 
+
+#define Kss         color6.r
+#define Ki          color6.g
+#define Nass        color6.b
+#define Nai         color6.a
+
+#define m           color7.r
+#define hfast       color7.g
+#define hslow       color7.b
+#define j           color7.a
+
+#define hCaMKslow   color8.r
+#define jCaMK       color8.g
+#define mL          color8.b
+#define hL          color8.a
+
+#define JrelNP      color9.r
+#define hLCaMK      color9.g
+
+
+#define JrelCaMK    color10.r
+#define sa          color10.g
+#define ifast       color10.b
+#define islow       color10.a
+
+#define tvlt        color11.r
+#define time        color11.g
+
+
+// color outputs .........................................................
+layout (location = 0) out vec4 ocolor0 ; 
+layout (location = 1) out vec4 ocolor1 ; 
+layout (location = 2) out vec4 ocolor2 ; 
+layout (location = 3) out vec4 ocolor3 ; 
+
+
+// Functions/macros for Rush-Larsen time integration .....................
+
+/*========================================================================
+ * RL1  : Rush Larsen 1: works with y_inf and tau_y
+ *      dy/dt = (y_inf - y)/tau_y where
+ *========================================================================
+ */
+float RL1(float yo, float y_inf, float tau_inf,float deltaT){
+    return y_inf + (yo - y_inf)*exp(-deltaT/tau_inf) ; 
+}
+
+/*========================================================================
+ * RL2 : Rush Larsen 2: works with a and b values 
+ *      dy/dt = (y_inf - y)/tau_y where
+ *      y_inf = a/(a+b)     and      tau_y = 1./(a+b)
+ *========================================================================
+ */
+float RL2(float yo, float a, float b,float deltaT){
+    float y_inf = a/(a+b) ;
+    float t_inf = 1./(a+b) ;
+
+    return RL1(yo,y_inf,t_inf,deltaT) ; 
+}
+
+
+/*========================================================================
+ * main body of the shader
+ *========================================================================
+ */
+void main(){
+    // localizing variables ..............................................
+    vec4 color0  = texture( icolor0  , cc ) ;
+    vec4 color1  = texture( icolor1  , cc ) ;
+    vec4 color2  = texture( icolor2  , cc ) ;
+    vec4 color3  = texture( icolor3  , cc ) ;
+    vec4 color4  = texture( icolor4  , cc ) ;
+    vec4 color5  = texture( icolor5  , cc ) ;
+    vec4 color6  = texture( icolor6  , cc ) ;
+    vec4 color7  = texture( icolor7  , cc ) ;
+    vec4 color8  = texture( icolor8  , cc ) ;
+    vec4 color9  = texture( icolor9  , cc ) ;
+    vec4 color10 = texture( icolor10 , cc ) ;
+
+    // aCaMK .............................................................
+    float   aCaMKinf = 1./
+            (   1. +    exp(  -(V-24.34)/14.82 )           ) ;
+
+    float   ta       = 1.0515/
+            (   1./ (   1.2089*(1.+exp(-(V-18.41)/29.38))  ) +
+                3.5/(   1. + exp(  (V+100.)/29.38  )   )   ) ;
+
+    ta *= Ct_aCaMK ;
+
+    aCaMK = RL1( aCaMK, aCaMKinf, ta, dt ) ;
+
+    // iCaMKfast, iCaMKslow ..............................................
+    float   iCaMKinf = 1./
+            (   1. + exp(   (V+43.94)/5.711    )           ) ;
+
+    float   dCaMKdev = 1.354 + 1.0e-4/
+            (   exp(           (V-167.4)/15.89     ) +
+                exp(          -(V-12.23)/0.2145    )       ) ;
+
+    float   dCaMKrec = 1.0 - 0.5/
+            (   1. +    exp(   (V+70.)/20.0        )       ) ;
+
+    float   tifast   = 4.562 + 1./
+            (   0.3933*exp(-(V+100.)/100.  ) +
+                0.08004*exp((V+50.0)/16.59 )               ) ;
+
+
+    float   tislow   = 23.62 +
+            1./( 0.001416*exp(-(V+96.52)/59.05 )
+                +1.7808e-8*exp((V+114.1)/8.079 )           ) ;
+    float   tiCaMKfast = tifast*dCaMKdev*dCaMKrec*Ct_iCaMKfast ;
+    float   tiCaMKslow = tislow*dCaMKdev*dCaMKrec*Ct_iCaMKslow ;
+
+    iCaMKfast = RL1( iCaMKfast, aCaMKinf, tiCaMKfast, dt ) ;
+    iCaMKslow = RL1( iCaMKslow, aCaMKinf, tiCaMKslow, dt ) ;
+
+    // d .................................................................
+    float   dinf = 1./
+            (   1. +    exp(   -(V+3.940)/4.230    )       ) ;
+
+    float   td   =  0.6 + 1./
+            (   exp(   -0.05*(V+6.0)               ) +
+                exp(    0.09*(V+14.0)              )       ) ;
+    td *= Ct_d ;
+    
+    d = RL1(d, dinf, td, dt ) ;
+
+    // ffast, fslow ......................................................
+    float   finf    =  1./
+            (   1. + exp(      (V+19.58)/3.696     )       ) ;
+
+    float   tffast  =  7.0 + 1./
+            (   0.0045*exp(   -(V+20.0)/10.0       ) +
+                0.0045*exp(    (V+20.0)/10.0       )       ) ;
+    tffast *= Ct_ffast ;
+
+    float   tfslow  = 1000.0 +
+                1./(    0.000035*exp(-(V+5.0)/4.0 ) +
+                        0.000035*exp( (V+5.0)/6.0 )        ) ;
+    tfslow *= Ct_fslow ;
+
+    ffast = RL1( ffast , finf, tffast, dt ) ;
+    fslow = RL1( fslow , finf, tfslow, dt ) ;
+
+    // fCafast, fCaslow ..................................................
+    float   fCainf   = finf ;
+    float   tfCafast = 7.0 +
+                1./(    0.04*exp( -(V-4.0)/7.0)    +
+                        0.04*exp(  (V-4.0)/7.0)            ) ;
+    tfCafast *= Ct_fCafast ;
+
+    float   tfCaslow = 100.0 +
+                1./(    0.00012*exp( -V/3.0 ) +
+                        0.00012*exp(  V/7.0 )              ) ;
+    tfCaslow *= Ct_fCaslow ;
+    
+    fCafast = RL1( fCafast, fCainf, tfCafast, dt ) ;
+    fCaslow = RL1( fCaslow, fCainf, tfCaslow, dt ) ;
+
+    // jCa ...............................................................
+    float   jCainf  =  1./
+            (   1. + exp(      (V+19.58)/3.696     )       ) ;
+
+    float   tjCa    = 75.0*Ct_jCa ;
+    
+    jCa = RL1( jCa, jCainf, tjCa, dt ) ;
+
+    // fCaMKfast .........................................................
+    float   fCaMKinf = jCainf ;
+
+    float   tfCaCMfast = 7.0 + 1./
+            (   0.0045*exp(   -(V+20.0)/10.0       ) +
+                0.0045*exp(    (V+20.0)/10.0       )       ) ;
+    tfCaCMfast *= 2.5*Ct_fCaMKfast ;
+
+    fCaMKfast = RL1(fCaMKfast, fCaMKinf, tfCaCMfast, dt ) ;
+
+    // fCaCaMKfast .......................................................
+    float   fCaCaMKinf = jCainf ;
+
+    float   tfCaCaMKfast = 7.0 + 1./
+            (   0.0045*exp(   -(V+20.0)/10.0       ) +
+                0.0045*exp(    (V+20.0)/10.0       )       ) ;
+    tfCaCaMKfast *=  2.5*2.5*Ct_fCaCaMKfast ;
+
+    tfCaCaMKfast = RL1( tfCaCaMKfast, fCaCaMKinf, tfCaCaMKfast, dt ) ; 
+    
+    // n .................................................................
+    float Kmn  = 0.002 ; float kp2n = 1000.0 ; float km2n = jCa ;
+    Cass = Cajsr ;
+
+    float kappa     = 1. + Kmn/Cass ;
+    kappa           = kappa*kappa*kappa*kappa ;
+
+    float alpha_n   = 1.0 /( kp2n/km2n  + kappa ) ;
+    float ninf      = alpha_n*kp2n/km2n ;
+    float tn        = Ct_n/km2n ;
+    
+    n = RL1( n, ninf, tn, dt ) ;
+
+    // xrfast, xrslow ....................................................
+    float   xrinf   = 1./
+            (   1.  +   exp(   -(V+8.337)/6.789    )       ) ;
+
+    float   txrfast  = (
+             12.98 + 1./
+            (   0.3652*exp(     (V-31.66)/3.869    ) +
+                4.123e-5*exp(  -(V-47.78)/20.38    )       )
+        )*Ct_xrfast ;
+
+    float   txrslow  = (
+                1.865 + 1./
+            (   0.06629*exp(    (V-34.70)/7.355    ) +
+                1.128e-5*exp(   (29.74-V)/25.94    )       ) 
+        ) * Ct_xrslow ;
+
+    xrfast = RL1( xrfast, xrinf, txrfast, dt ) ;
+    xrslow = RL1( xrslow, xrinf, txrslow, dt ) ;
+
+    // xs1, xs2 ..........................................................
+    float   xs1inf  = 1./
+            (   1. +    exp(   -(V+11.60)/8.932    )       ) ;
+
+    float   xs2inf  = xs1inf ;
+    float   txs1    = (
+             817.3 + 1./
+            (   2.326e-4*exp(   (V+48.28)/17.80    ) +
+                0.001292*exp(  -(V+210.0)/230.0    )       )
+        ) * Ct_xs1 ;
+    float   txs2    = (
+             1./
+            (   0.01*exp(       (V-50.0)/20.0      ) +
+                0.0193*exp(    -(V+66.54)/31.      )       ) 
+        ) * Ct_xs2 ;
+
+    xs1 = RL1( xs1, xs1inf, txs1, dt ) ;
+    xs2 = RL1( xs2, xs2inf, txs2, dt ) ;
+    
+    
+    // output color values ...............................................
+    ocolor0 = vec4(color0) ;
+    ocolor1 = vec4(color1) ;
+    ocolor2 = vec4(color2) ;
+    ocolor3 = vec4(color3) ;
+
+    return ;
+}
+
+
+</script><!-- end of comp1 shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='comp2' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * comp2.frag   : march color-set 4 to 11 for one time step
+ *
+ * PROGRAMMER   : ABOUZAR KABOUDIAN
+ * DATE         : Wed 28 Oct 2020 20:43:39 (EDT)
+ * PLACE        : Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+precision highp float ;
+precision highp int ;
+
+
+// interface variables ...................................................
+in vec2 cc  ;
+
+// uniforms and useful macros ............................................
+
+/* uniform samplers of state variables  */
+uniform sampler2D   
+        icolor0, icolor1, icolor2, icolor3, icolor4,  icolor5, 
+        icolor6, icolor7, icolor8, icolor9, icolor10 ;
+
+uniform float       dt ;                /* time step                */
+uniform float       ds ;                /* domain size in x,y-dir   */
+uniform float       diffCoef ;          /* diffusion coeficient     */
+uniform float       C_m ;               /* membrane capacitance     */
+
+uniform int         cellType ;
+
+/* Extra-cellular concenterations       */
+uniform float       Ca_o, Na_o, K_o ;
+
+/* time factor multipliers              */
+uniform float       Ct_m          ; 
+uniform float       Ct_h          ; 
+uniform float       Ct_j          ; 
+uniform float       Ct_hCaMKslow  ; 
+uniform float       Ct_hslow      ; 
+uniform float       Ct_mL         ; 
+uniform float       Ct_jCaMK      ; 
+uniform float       Ct_hL         ; 
+uniform float       Ct_hLCaMK     ; 
+uniform float       Ct_a          ; 
+uniform float       Ct_ifast      ; 
+uniform float       Ct_islow      ; 
+uniform float       Ct_aCaMK      ; 
+uniform float       Ct_iCaMKfast  ; 
+uniform float       Ct_iCaMKslow  ; 
+uniform float       Ct_d          ; 
+uniform float       Ct_ffast      ; 
+uniform float       Ct_fslow      ; 
+uniform float       Ct_fCafast    ; 
+uniform float       Ct_fCaslow    ; 
+uniform float       Ct_jCa        ; 
+uniform float       Ct_fCaMKfast  ; 
+uniform float       Ct_fCaCaMKfast; 
+uniform float       Ct_n          ; 
+uniform float       Ct_xrfast     ; 
+uniform float       Ct_xrslow     ; 
+uniform float       Ct_xs1        ; 
+uniform float       Ct_xs2        ; 
+uniform float       Ct_xk1        ; 
+uniform float       Ct_relNP      ; 
+uniform float       Ct_relCaMK    ; 
+uniform float       Ct_tr         ; 
+uniform float       Ct_diffCa     ; 
+uniform float       Ct_diffNa     ; 
+uniform float       Ct_diffK      ; 
+
+/* current multipliers                  */
+uniform float       C_Na        ;
+uniform float       C_Nafast    ;
+uniform float       C_Nalate    ;
+uniform float       C_NaCa      ;
+uniform float       C_to        ;
+uniform float       C_CaL       ;
+uniform float       C_CaNa      ;
+uniform float       C_CaK       ;
+uniform float       C_Kr        ;
+uniform float       C_Ks        ;
+uniform float       C_K1        ;
+uniform float       C_NaCai     ;
+uniform float       C_NaCass    ;
+uniform float       C_NaKNa     ;
+uniform float       C_NaKK      ;
+uniform float       C_NaK       ;
+uniform float       C_Nab       ;
+uniform float       C_Kb        ;
+uniform float       C_Cab       ;
+uniform float       C_pCa       ;
+uniform float       C_relNP     ;
+uniform float       C_relCaMK   ;
+uniform float       C_upNP      ;
+uniform float       C_upCaMK    ;
+uniform float       C_leak      ;
+uniform float       C_up        ;
+uniform float       C_tr        ;
+uniform float       C_rel       ;
+uniform float       C_diffCa    ;
+uniform float       C_diffNa    ;
+uniform float       C_diffK     ;
+
+
+/* Scaling Factors                      */
+uniform float       SGNalate ;  
+uniform float       SGto     ;  
+uniform float       SPCa     ;  
+uniform float       SGKr     ;  
+uniform float       SGKs     ;  
+uniform float       SGK1     ;  
+uniform float       SGNaCa   ;  
+uniform float       SGNaK    ;  
+uniform float       SGKb     ;  
+uniform float       SJrel    ;  
+uniform float       SJup     ;  
+uniform float       SCMDN    ;
+
+
+/* macros (of constants)                */
+#define bt          4.75
+#define arel        2.375
+#define btCaMK      5.9375
+#define arekCaMK    2.96875
+
+#define i           0
+#define ss          1
+
+#define kNa1        15.0
+#define kNa2        5.0
+#define kNa3        88.12
+#define kasymm      12.5
+#define omegaNa     6.0e4
+#define omegaCa     6.0e4
+#define omegaNaCa   5.0e3
+#define kCaon       1.5e6
+#define kCaoff      5.0e3
+#define KmCaAct     150.e-6
+
+#define Nao         Na_o
+#define Cao         Ca_o
+#define Ko          K_o
+
+#define qNa         0.5224
+#define qCa         0.1670
+
+//#define Nao         140.0
+//#define Cao         1.8
+//#define Ko          5.4
+
+#define zNa         1.0
+#define zCa         2.0
+#define zK          1.0 
+
+#define gKi         0.75
+#define gKo         0.75
+#define gCai        1.0 
+#define gCao        0.341
+
+#define GNaCa       0.0008
+#define GNa         14.838
+#define Gto         0.02
+
+#define gNai        0.75
+#define gNao        0.75
+
+#define PNab        3.75e-10
+#define PCab        2.5e-8
+#define GpCa        0.0005
+#define PRNaK       0.01833
+
+#define arelCaMK    2.96875
+#define byCaMK      5.9375
+
+#define ACaMK       0.05
+#define bCaMK       0.00068
+#define CaMK0       0.05
+#define KmCaM       0.0015
+#define KmCaMK      0.15
+#define CaMKo       0.05
+
+#define GNafast     75.0
+#define GNalate     0.0075
+
+#define CSQN        10.
+#define KmCSQN      0.8
+#define CMDNI       0.05
+#define KmCMDN      0.00238
+#define TRPN        0.07
+#define KmTRPN      0.0005
+#define tdiffCaCnst 0.2
+
+#define Acap        1.534e-4
+#define Ageo        0.767e-4
+#define vcell       38.0e-6
+#define vss         0.76e-6
+#define vmyo        25.84e-6
+#define vnsr        2.098e-6
+#define vjsr        0.182e-6
+
+#define BSR         0.047
+#define KmBSR       0.00087
+#define BSL         1.124
+#define KmBSL       0.0087
+
+
+#define F           96486.7
+#define R           8314.3
+#define T           310.
+
+#define kp1         949.5
+#define kp2         687.2
+#define kp3         1899.
+#define kp4         639.0
+#define km1         182.4
+#define km2         39.4
+#define km3         79300.0
+#define km4         40.0
+#define KKi         0.5
+#define KKo         0.3582
+#define MgADP       0.05
+#define MgATP       9.8
+#define KMgATP      1.698e-7
+#define H           1.e-7
+#define SP          4.2
+#define KHP         1.698e-7
+#define KNaP        224.0
+#define KKP         292.0
+
+#define K0Nai       9.073        
+#define K0Nao       27.78 
+#define Delta       -0.1550 
+
+const float rtof    = R*T/F ;
+const float fort    = F/(R*T) ;
+
+#define     EPI     1
+#define     ENDO    2
+#define     MID     0
+
+/* raise a number to power 8        */
+float   pow8(float x){
+    return  x*x*x*x*
+            x*x*x*x ;
+}
+
+
+// variable macros .......................................................
+
+#define aCaMK       color0.r
+#define iCaMKfast   color0.g
+#define iCaMKslow   color0.b
+#define d           color0.a
+
+#define ffast       color1.r
+#define fslow       color1.g
+#define fCafast     color1.b 
+#define fCaslow     color1.a
+
+#define jCa         color2.r
+#define fCaMKfast   color2.g
+#define fCaCaMKfast color2.b
+#define n           color2.a
+
+#define xrfast      color3.r
+#define xrslow      color3.g
+#define xs1         color3.b
+#define xs2         color3.b
+
+#define vlt         color4.r
+#define V           color4.r
+#define v           color4.g
+#define xK1         color4.b
+#define CaMKtrap    color4.a
+#define CaMKt       CaMKtrap
+
+#define Cansr       color5.r
+#define Cajsr       color5.g
+#define Cass        color5.b
+#define Cai         color5.a 
+
+#define Kss         color6.r
+#define Ki          color6.g
+#define Nass        color6.b
+#define Nai         color6.a
+
+#define m           color7.r
+#define hfast       color7.g
+#define hslow       color7.b
+#define j           color7.a
+
+#define hCaMKslow   color8.r
+#define jCaMK       color8.g
+#define mL          color8.b
+#define hL          color8.a
+
+#define JrelNP      color9.r
+#define hLCaMK      color9.g
+
+
+#define JrelCaMK    color10.r
+#define sa          color10.g
+#define ifast       color10.b
+#define islow       color10.a
+
+#define tvlt        color11.r
+#define time        color11.g
+
+
+// color outputs .........................................................
+layout (location = 0) out vec4 ocolor4  ; 
+layout (location = 1) out vec4 ocolor5  ; 
+layout (location = 2) out vec4 ocolor6  ; 
+layout (location = 3) out vec4 ocolor7  ; 
+layout (location = 4) out vec4 ocolor8  ; 
+layout (location = 5) out vec4 ocolor9  ; 
+layout (location = 6) out vec4 ocolor10 ; 
+
+
+// Functions/macros for Rush-Larsen time integration .....................
+
+/*========================================================================
+ * RL1  : Rush Larsen 1: works with y_inf and tau_y
+ *      dy/dt = (y_inf - y)/tau_y where
+ *========================================================================
+ */
+float RL1(float yo, float y_inf, float tau_inf,float deltaT){
+    return y_inf + (yo - y_inf)*exp(-deltaT/tau_inf) ; 
+}
+
+/*========================================================================
+ * RL2 : Rush Larsen 2: works with a and b values 
+ *      dy/dt = (y_inf - y)/tau_y where
+ *      y_inf = a/(a+b)     and      tau_y = 1./(a+b)
+ *========================================================================
+ */
+float RL2(float yo, float a, float b,float deltaT){
+    float y_inf = a/(a+b) ;
+    float t_inf = 1./(a+b) ;
+
+    return RL1(yo,y_inf,t_inf,deltaT) ; 
+}
+
+
+
+/*========================================================================
+ * laplacian
+ *========================================================================
+ */
+void laplacian(sampler2D icolor, out vec2 size, out vec4 l ){
+    // 4th order laplacian
+    float FC0 = -5./2.;
+    float FC1 = 4./3.;
+    float FC2 = -1./12. ;
+
+    // unit vectors
+    size = vec2(textureSize( icolor, 0 )) ;
+    vec2  ii = vec2(1.,0.)/size ;
+    vec2  jj = vec2(0.,1.)/size ;
+
+    vec2  iip = ii+jj ;
+    vec2  jjp = ii-jj ;
+
+    float gamma = 1./3. ;
+
+    l = (1.-gamma)*(
+            FC2*texture( icolor, cc+2.*ii) 
+        +   FC1*texture( icolor, cc+   ii) 
+        +   FC1*texture( icolor, cc-   ii)
+        +   FC2*texture( icolor, cc-2.*ii)
+        +   FC2*texture( icolor, cc+2.*jj) 
+        +   FC1*texture( icolor, cc+   jj) 
+        +   FC1*texture( icolor, cc-   jj)
+        +   FC2*texture( icolor, cc-2.*jj) )
+        +  gamma*0.5*(
+            FC2*texture( icolor, cc+2.*iip) 
+        +   FC1*texture( icolor, cc+   iip) 
+        +   FC1*texture( icolor, cc-   iip)
+        +   FC2*texture( icolor, cc-2.*iip)
+        +   FC2*texture( icolor, cc+2.*jjp) 
+        +   FC1*texture( icolor, cc+   jjp) 
+        +   FC1*texture( icolor, cc-   jjp)
+        +   FC2*texture( icolor, cc-2.*jjp) ) 
+
+        +2.*(1.-0.5*gamma)*FC0*texture( icolor, cc       ) ; 
+    return ;
+}
+
+/*========================================================================
+ * main body of the shader
+ *========================================================================
+ */
+void main(){
+    // localizing variables ..............................................
+    vec4 color0  = texture( icolor0  , cc ) ;
+    vec4 color1  = texture( icolor1  , cc ) ;
+    vec4 color2  = texture( icolor2  , cc ) ;
+    vec4 color3  = texture( icolor3  , cc ) ;
+    vec4 color4  = texture( icolor4  , cc ) ;
+    vec4 color5  = texture( icolor5  , cc ) ;
+    vec4 color6  = texture( icolor6  , cc ) ;
+    vec4 color7  = texture( icolor7  , cc ) ;
+    vec4 color8  = texture( icolor8  , cc ) ;
+    vec4 color9  = texture( icolor9  , cc ) ;
+    vec4 color10 = texture( icolor10 , cc ) ;
+    
+    // m .................................................................
+    float minf  = 1.0/(1.0+exp((-(V+39.57))/9.871)) ;
+    float tm    = 1.0/(6.765*exp((V+11.64)/34.77)
+           +8.552*exp(-(V+77.42)/5.955)) ;
+
+    m = RL1( m , minf , tm, dt ) ;
+
+    // hfast, hslow ......................................................
+    float hinf  = 1.0/(1.+exp((V+82.90)/6.086)) ;
+    float thf   = 1.0/(1.432e-5*exp(-(V+1.196)/6.285)
+            +6.149*exp((V+0.5096)/20.27)) ;
+    float ths   = 1.0/(0.009794*exp(-(V+17.95)/28.05)
+            +0.3343*exp((V+5.730)/56.66)) ;
+    
+    hfast = RL1( hfast, hinf, thf, dt ) ;
+    hslow = RL1( hslow, hinf, ths, dt ) ;
+
+    float Ahf   = 0.99 ; float Ahs = 0.01 ;
+    float h     = Ahf*hfast + Ahs*hslow ;
+
+    // j .................................................................
+    float jinf  = hinf ;
+    float tj    = 2.038+1.0/(0.02136*exp(-(V+100.6)/8.281)
+            +0.3052*exp((V+0.9941)/38.45)) ;
+
+    j = RL1( j, jinf, tj, dt ) ;
+
+    // hCaMKslow .........................................................
+    float hCaMKinf  = 1.0/(1.0+exp((V+89.1)/6.086)) ;
+    float thCaMKs   = 3.0*ths ;
+    float hCaMKfast = hfast ;
+
+    hCaMKslow = RL1( hCaMKslow, hCaMKinf, thCaMKs, dt ) ;
+
+    float hCaMK = Ahf*hCaMKfast + Ahs*hCaMKslow ;
+
+    // jCaMK .............................................................
+    float   jCaMKinf = jinf ;
+    float   tjCaMK  =1.46*tj ;
+
+    jCaMK = RL1( jCaMK, jCaMKinf, tjCaMK, dt ) ;
+
+    // mL ................................................................
+    float   mLinf = 1.0/(1.0+exp((-(V+42.85))/5.264)) ;
+    float   tLm   = tm ;
+    
+    mL = RL1( mL, mLinf, tLm, dt ) ;
+
+    // hL ................................................................
+    float hLinf     = 1.0/(1.0+exp((V+87.61)/7.488)) ;
+    float thL = 200.0 ;
+
+    hL = RL1( hL, hLinf, thL, dt ) ;
+
+    // hLCaMK ............................................................
+    float hLCaMKinf = 1./(1.+exp((V+93.81)/7.488)) ;
+    float tLCaMK = 3.*thL ;
+
+    hLCaMK = RL1( hLCaMK, hLCaMKinf, tLCaMK, dt ) ;
+
+    // xK1 ...............................................................
+    float   xK1inf  = 1./
+            (   1.  +   exp(   -(V+2.5538*Ko + 144.59  )/
+                                     (1.5692*Ko + 3.8115 )  )   ) ;
+
+
+    float   txK1    = (
+            122.2/
+            (   exp(   -( V+127.2   )/20.36 ) +
+                exp(    ( V+236.8   )/69.33 )              ) 
+        ) * Ct_xk1 ;
+
+    xK1 = RL1(xK1 , xK1inf, txK1, dt ) ;
+
+    // a (sa) ............................................................
+    float   ainf    = 1./
+            (   1. +    exp(  -(V-14.34)/14.82     )       )  ;
+    
+    float   ta      = (
+            1.0515/
+            (   1./ (   1.2089*(1.+exp(-(V-18.41)/29.38))  ) +
+                3.5/(   1. + exp(  (V+100.)/29.38  )   )   ) 
+        )*Ct_a ;
+    
+    sa = RL1 ( sa, ainf, ta , dt ) ;
+
+    // ifast, islow ......................................................
+    float   delta_epi   = ( cellType == EPI ) ?  1.0 - 
+                    0.95/(1.0 + exp((V+70.0)/5.0)) : 1.0 ;
+
+    float   iinf        = 1./
+            (   1. + exp(   (V+43.94)/5.711    )           )  ;
+    
+    float   tifast      = (4.562 + 1./
+            (   0.3933*exp(-(V+100.)/100.  ) +
+                0.08004*exp((V+50.0)/16.59 )               ) 
+        )*delta_epi*Ct_ifast ;
+
+    float   tislow      = (23.62 +
+            1./( 0.001416*exp(-(V+96.52)/59.05 )
+                +1.7808e-8*exp((V+114.1)/8.079 )           ) 
+        )*delta_epi*Ct_islow ;
+
+    ifast = RL1( ifast, iinf, tifast, dt ) ;
+    islow = RL1( islow, iinf, tislow, dt ) ;
+
+    // kiii ..............................................................
+    float vfort   = V*fort ;
+    float vffort  = vfort*F ;
+
+    float   alphaCass ;
+    float   betaCao ;
+    float   alphaNass ; 
+    float   betaNao ;
+    float   alphaKss ;
+    float   betaKo ;
+
+    if ( abs(vfort)>0.01){
+        alphaCass = (zCa*zCa*vffort*gCai*exp(zCa*vfort))/
+                            (   exp(zCa*vfort) - 1.0        ) ; 
+        betaCao     = zCa*zCa*vffort*gCao*Cao/
+                        (   exp(zCa*vfort) - 1.0            )  ;
+        alphaNass = zNa*zNa*vffort*gNai*exp(zNa*vfort)/
+                            (   exp(zNa*vfort) - 1.0       ) ;
+
+        betaNao =  zNa*zNa*vffort*gNao*Nao/
+                            (   exp(zNa*vfort) - 1.0       ) ;
+        alphaKss = zK*zK*vffort*gKi*exp(zK*vfort)/
+                            (   exp(zK*vfort) - 1.0        ) ;
+        betaKo = zK*zK*vffort*gKo*Ko/(exp(zK*vfort)-1.) ;
+
+    }else{
+        alphaCass = (zCa*F*gCai + zCa*V*F*gCai ) ;
+        betaCao = zCa*F*gCao*Cao/exp(zCa*vfort) ;
+        alphaNass = zNa*gNai*(F+ vffort*zNa)  ;
+        betaNao = zNa*F*gNao*Nao/
+                            (   exp(zNa*vfort)        ) ;
+        alphaKss = zK*gKi*(F + vffort*zK) ;
+        betaKo = zK*F*gKo*Ko/exp(zK*vfort) ;
+
+    }
+
+    float   PsiCa       = alphaCass*Cass - betaCao ;
+    float   PCa         = 0.0001*SPCa ;
+    float   IbarCaL     = PCa*PsiCa ;
+
+    float   PsiCaNa     = alphaNass*Nass - betaNao ;
+    float   PCaNa       = 0.00125*PCa ;
+    float   IbarCaNa    = PCaNa*PsiCaNa ;
+
+    float   PCaK        = 3.574e-4*PCa ;
+    float   PsiCaK      = alphaKss*Kss - betaKo ;
+    float   IbarCaK     = PCaK*PsiCaK ;
+
+    float   PCaCaMK     = 1.1*PCa ;
+    float   IbarCaLCaMK = PCaCaMK*PsiCa ;
+
+    float   PCaNaCaMK   = 0.00125*PCaCaMK ;
+    float   IbarCaNaCaMK= PCaNaCaMK*PsiCaNa ;
+
+    float   PCaKCaMK    = 3.574e-4*PCaCaMK ;
+    float   IbarCaKCaMK = PCaKCaMK*PsiCaK ;
+
+    float   Affast      = 0.6 ;
+    float   Afslow      = 1.-Affast ;
+    float   f           = Affast*ffast + Afslow*fslow ;
+
+    float   AfCafast    =  0.3 +
+               0.6/(    1. + exp((V-10.)/10.)              ) ;
+    float   AfCaslow    = 1. - AfCafast ;
+    float   fCa         = AfCafast*fCafast + AfCaslow*fCaslow ;
+
+    float   fCaMKslow   = fslow ;
+    float   AfCaMKfast  = Affast ;
+    float   AfCaMKslow  = Afslow ;
+    float   fCaMK       = AfCaMKfast*fCaMKfast + AfCaMKslow*fCaMKslow ;
+
+    float   fCaCaMKslow = fCaslow ;
+    float   AfCaCaCMfast= Affast ;
+    float   AfCaCaCMslow= Afslow ;
+    float   fCaCaMK     = 
+        fCaCaMKfast*AfCaCaCMfast + fCaCaMKslow*AfCaCaCMslow ;
+
+
+    float   CaMKb       = CaMKo*(1.0-CaMKt)/(1.0+KmCaM/Cass) ;
+    float   CaMKa       = CaMKb + CaMKt ;
+
+    float   fICaLCaMK   = 1./(1.+KmCaMK/CaMKa) ;
+
+    float   alpha_I = d*(1.0 - fICaLCaMK )*( f*(1.-n) + fCa*n*jCa) ;
+    float   beta_I  = d*fICaLCaMK*( fCaMK*(1.-n) + fCaCaMK*n*jCa ) ;
+
+    // CaMKtrap ..........................................................
+    float   dCaMKt2dt = ACaMK*CaMKb*(CaMKb + CaMKt) - bCaMK*CaMKt ;
+
+    CaMKt += dCaMKt2dt*dt ;
+
+    // ICaL ..............................................................
+    float   ICaL    = C_CaL*(alpha_I*IbarCaL    + beta_I*IbarCaLCaMK    ) ;
+
+    // ICaNa .............................................................
+    float   ICaNa   = C_CaNa*(alpha_I*IbarCaNa  + beta_I*IbarCaNaCaMK   ) ;
+
+    // ICaK ..............................................................
+    float   ICaK    = C_CaK*(alpha_I*IbarCaK    + beta_I*IbarCaKCaMK    ) ;
+
+    // Kss, JdiffK .......................................................
+    float   tdiffK  = 2.0 * Ct_diffK ;
+    float   JdiffK  = C_diffK*(Kss -Ki)/tdiffK ;
+
+    float   dKss2dt = -ICaK*Acap/(F*vss) - JdiffK ;
+    Kss += dKss2dt*dt ;
+
+    // JrelNP ............................................................
+    float   bjsr        = -ICaL/(1.0+pow8(1.5/Cajsr)) ;
+    float   ajsr        = 1.0/(1.0+(0.0123/Cajsr) ) ;
+
+    float   JrelNPinf   = arel*bjsr*SJrel ;
+    float   trelNP      = max(bt*ajsr ,0.001) * Ct_relNP ;
+
+    JrelNP = RL1( JrelNP, JrelNPinf , trelNP, dt  ) ;
+
+    // JrelCaMK ..........................................................
+    float   JrelCaMKinf = arelCaMK*bjsr*SJrel ;
+    float   trelCaMK    = max( btCaMK * ajsr , 0.001 ) * Ct_relCaMK ;
+    
+    JrelCaMK = RL1( JrelCaMK, JrelCaMKinf, trelCaMK, dt ) ;
+
+    // Jrel ..............................................................
+    CaMKb       = CaMK0*(1.0-CaMKt)/(1.0 + KmCaM/Cass) ;
+    CaMKa       = CaMKb + CaMKt ;
+
+    float   frelCaMK    = 1.0/(1.0 + KmCaMK/CaMKa ) ;
+    float   Jrel        = (1.0 - frelCaMK)*JrelNP +  frelCaMK*JrelCaMK ;
+    Jrel               *= C_rel ;
+
+    // Jup ...............................................................
+     float   JupNP       = 0.004375*Cai/(0.00092 + Cai) ;
+            JupNP       *= SJup ;
+            JupNP       *= C_upNP ;
+
+    float   dKmPLB      = 0.00017 ;
+    float   dJupCAMK    = 1.75 ;
+
+    float   JupCaMK     = ( 1.0 + dJupCAMK )*0.004375*Cai/
+                (   0.00092 - dKmPLB + Cai                  ) ;
+            JupCaMK    *= SJup ;
+            JupCaMK    *= C_upCaMK ;
+
+    float   fupCaMK = frelCaMK ;
+    float   Jleak   = 0.0039375*Cansr/15.0 ;
+            Jleak  *= C_leak ;
+
+    float   Jup  = ( 1.0 - fupCaMK )*JupNP + fupCaMK*JupCaMK - Jleak ;
+            Jup *= C_up ;
+
+    // Cansr .............................................................
+    float   ttr         = 100.0 * Ct_tr ;
+    float   Jtr         = ( Cansr - Cajsr )/ttr ;
+            Jtr        *= C_tr ;
+
+
+    float   dCansr2dt = Jup - Jtr*vjsr/vnsr ;
+
+    Cansr += dCansr2dt*dt ;
+
+    // Cajsr .............................................................
+    float   aCajsrs= KmCSQN + Cajsr ;
+    aCajsrs *= aCajsrs ;
+    float   bCajsr = 1.0/(1.0 + CSQN*KmCSQN/aCajsrs ) ;
+
+    float   dCajsr2dt = bCajsr*(Jtr - Jrel) ;
+    Cajsr += dCajsr2dt*dt ;
+
+    // INaCai , INaCass ..................................................
+        float   hCa = exp(qCa*vfort) ;
+    float   hNa = exp(qNa*vfort) ;
+
+    float   Ca[2] ;
+    float   Na[2] ;
+    float   INaCaArray[2] ;
+    float   aGNaCa[2] ;
+    float   C_NaCaArray[2] ;
+
+    aGNaCa[ i ] = 0.8*SGNaCa ;
+    aGNaCa[ ss] = 0.2*SGNaCa ;
+
+    C_NaCaArray[ i ] = C_NaCai ;
+    C_NaCaArray[ ss] = C_NaCass ;
+
+    Ca[ss]  = Cass ;
+    Ca[i ]  = Cai ;
+    Na[ss]  = Nass ;
+    Na[i ]  = Nai ;
+
+    float   h1 , h2 , h3 , h4 ,
+            h5 , h6 , h7 , h8 ,
+            h9 , h10, h11, h12;
+
+    float   k1 , k2 , k3 , k4 ,
+            k5 , k6 , k7 , k8 ;
+    float   k3p, k3pp, k4p, k4pp ;
+
+    float   x1 , x2 , x3 , x4 ;
+    float   E1 , E2 , E3 , E4 ;
+    float   xs ;
+
+    float   KmCaAct2CaS ;
+    float   allo ;
+    float   JNaCaNa ;
+    float   JNaCaCa ;
+
+    /* Coefficients independent of i, ss values     */
+    h7   = 1.0 + Nao*(1.0 + 1.0/hNa)/kNa3 ;
+    h8   = Nao/(kNa3*hNa*h7) ;
+    h9   = 1.0/h7 ;
+    h10  = kasymm + 1.0 + Nao*(1.0+Nao/kNa2)/kNa1 ;
+    h11  = Nao*Nao/(h10*kNa1*kNa2) ;
+    h12  = 1.0/h10 ;
+
+    k1   = h12*Cao*kCaon ;
+    k2   = kCaoff ;
+    k3p  = h9*omegaCa ;
+    k3pp = h8*omegaNaCa ;
+    k3   = k3p + k3pp ;
+
+    /* Coefficients depending on i, and ss values   */
+    for(int Y=0 ; Y<2 ; Y++){
+        h1      = 1.0 + Na[Y]*(1.+hNa)/kNa3 ;
+        h2      = Na[Y]*hNa/( kNa3*h1  ) ;
+        h3      = 1.0/h1 ;
+        h4      = 1.0+ Na[Y]*(1.0 + Na[Y]/kNa2)/kNa1 ;
+        h5      = Na[Y]*Na[Y]/( h4*kNa1*kNa2   ) ;
+        h6      = 1.0/h4 ;
+
+        k4p     = h3*omegaCa/hCa ;
+        k4pp    = h2*omegaNaCa ;
+        k4      = k4p + k4pp ;
+        k5      = kCaoff ;
+        k6      = h6*Ca[Y]*kCaon ;
+        k7      = h5*h2*omegaNa ;
+        k8      = h8*h11*omegaNa ;
+        x1      = k2*k4*(k7+k6) + k5*k7*(k2+k3) ;
+        x2      = k1*k7*(k4+k5) + k4*k6*(k1+k8) ;
+        x3      = k1*k3*(k7+k6) + k8*k6*(k2+k3) ;
+        x4      = k2*k8*(k4+k5) + k3*k5*(k1+k8) ;
+        xs      = x1 + x2 + x3 + x4 ;
+
+        E1      = x1/xs ;
+        E2      = x2/xs ;
+        E3      = x3/xs ;
+        E4      = x4/xs ;
+
+        KmCaAct2CaS = KmCaAct/Ca[Y] ;
+        KmCaAct2CaS *= KmCaAct2CaS ;
+
+        allo    = 1./(1. + KmCaAct2CaS ) ;
+        JNaCaNa = 3.0*(E4*k7 - E1*k8) + E3*k4pp - E2*k3pp ;
+        JNaCaCa = E2*k2 - E1*k1 ;
+
+        INaCaArray[Y]= C_NaCaArray[Y]*GNaCa*aGNaCa[Y]*allo*
+                        (zNa*JNaCaNa + zCa*JNaCaCa) ;
+    }
+
+    float INaCai    = INaCaArray[ i  ] ;
+    float INaCass   = INaCaArray[ ss ] ;
+
+    // ICab, IpCa ........................................................
+    float ICab  = C_Cab*PCab*(alphaCass*Cai - betaCao ) ;
+    float IpCa  = C_pCa*GpCa*Cai/(0.0005+Cai) ;
+
+    // Cai ...............................................................
+    float   tdiffCa = tdiffCaCnst * Ct_diffCa ;
+    float   JdiffCa = (Cass - Cai)/tdiffCa ;
+            JdiffCa*= C_diffCa ;
+
+    float CMDN = CMDNI*SCMDN ;
+
+    float b1    = KmCMDN + Cai ;
+    b1 *= b1 ;
+
+    float b2    = KmTRPN + Cai ;
+    b2 *= b2 ;
+
+    float betaCai = 1.0/(   1.0 +
+                            CMDN*KmCMDN/b1 +
+                            TRPN*KmTRPN/b2      ) ;
+
+    float   dCai2dt = betaCai*
+                (   -( IpCa + ICab - 2.0*INaCai )*Acap/(2.0*F*vmyo)
+                    - Jup*vnsr/vmyo
+                    + JdiffCa*vss/vmyo                              ) ;
+    Cai += dCai2dt*dt ;
+
+    // ENa, EK, EKs ......................................................
+    float   ENa         = rtof*log( Nao/Nai ) ;
+    float   EK          = rtof*log( Ko/Ki   ) ;
+    float   EKs         = rtof*log((Ko+PRNaK*Nao)/(Ki + PRNaK*Ki)) ;
+
+    // INafast ...........................................................
+    float   fINaCaMK    = 1.0/(1.0 + (KmCaMK/CaMKa) ) ;
+    
+    float INafast = GNafast*(V-ENa)*m*m*m*((1.-fINaCaMK)*h*j
+            + fINaCaMK*hCaMK*jCaMK) ;
+
+    // INalate ...........................................................
+    float fINaLp = (1.0/(1.0+KmCaMK/CaMKa)) ;
+    float INalate = GNalate*(V-ENa)*mL*((1.-fINaLp)*hL+fINaLp*hLCaMK) ;
+
+    // INa ...............................................................
+    float INa = C_Na*(C_Nafast*INafast + C_Nalate*INalate) ;
+    
+    // INaCa .............................................................
+    float   INaCa       = C_NaCa*(INaCai + INaCass) ;
+
+    // Ito ...............................................................
+    float   Aifast      = 1./
+            (    1. +   exp(   (V-213.6)/151.2 )           )  ;
+    float   Aislow      = 1.0 - Aifast ;
+    float   iavg        = Aifast*ifast + Aislow*islow ;
+
+
+    float   AiCaMKfast  = Aifast ;
+    float   AiCaMKslow  = Aislow ;
+    float   iCaMK       = AiCaMKfast*iCaMKfast + AiCaMKslow*iCaMKslow;
+
+    float   fItoCaMK    = fINaCaMK ;
+
+    float   Ito         = C_to*SGto*Gto*( V - EK  )*
+        ( ( 1.0 - fItoCaMK )*sa*iavg    +   fItoCaMK*aCaMK*iCaMK    ) ;
+
+    // IKr ...............................................................
+    float   Axrfast     = 1./
+            (   1.  +   exp(    (V+54.81)/38.21    )       )  ;
+    
+    float   Axrslow     = 1.0 - Axrfast ;
+    float   xr          = Axrfast*xrfast    +   Axrslow*xrslow ;
+
+    float   RKr         = 1./( ( 1.+exp((V+55.)/75.) )*
+                             ( 1.+exp((V-10.)/30.) )       ) ;
+
+    float   GKr         = 0.046*SGKr ;
+
+    float   IKr         = C_Kr*GKr*sqrt(Ko/5.4)*xr*RKr*(V-EK) ;
+
+    // IKs ...............................................................
+    float   GKs         = 0.0034*SGKs ;
+
+    float   IKs         = C_Ks*GKs*(1.0 + 0.6/(1.0 + pow(3.8e-5/Cai, 1.4)))*
+                            xs1*xs2*( V - EKs   ) ;
+
+    // IK1 ...............................................................
+    float   RK1         = 1./
+            (   1. + exp((  V + 105.8 - 2.6*Ko  )/9.493 )   )  ;
+    float   GK1         = 0.1908*sqrt(Ko)*SGK1 ;
+    float   IK1         = C_K1*GK1*xK1*RK1*( V - EK ) ;
+
+    // INaK ..............................................................
+    float   KNai        = K0Nai*exp( Delta*vfort/3.0       )  ;   
+    float   KNao        = K0Nao*exp( (1.0-Delta)*vfort/3.0 ) ;
+
+    float   P           = SP/(  1.0 + H/KHP + Nai/KNaP + Ki/KKP     ) ;
+
+    float   Nao2KNao    = Nao/KNao ;
+    float   Nai2KNai    = Nai/KNai ;
+    float   Ko2KKo      = Ko/KKo ;
+    float   Ki2KKi      = Ki/KKi ;
+
+    float   OPNao2KNao  = 1. + Nao2KNao ;
+    float   OPNai2KNai  = 1. + Nai2KNai ;
+    float   OPKo2KKo    = 1. + Ko2KKo ;
+    float   OPKi2KKi    = 1. + Ki2KKi ;
+
+    float   alpha1      = kp1*Nai2KNai*Nai2KNai*Nai2KNai/
+        (   OPNai2KNai*OPNai2KNai*OPNai2KNai + OPKi2KKi*OPKi2KKi - 1.0  ) ;
+
+    float   beta1       = km1*MgADP ;
+
+    float   alpha2      = kp2 ;
+
+    float   beta2       = km2*Nao2KNao*Nao2KNao*Nao2KNao/
+        (   OPNao2KNao*OPNao2KNao*OPNao2KNao + OPKo2KKo*OPKo2KKo - 1.0  ) ;
+
+    float   alpha3      = kp3*Ko2KKo*Ko2KKo/
+        (   OPNao2KNao*OPNao2KNao*OPNao2KNao + OPKo2KKo*OPKo2KKo - 1.0  ) ;
+
+    float   beta3       = km3*P*H/(   1.0 + MgATP/KMgATP                ) ;
+
+    float   alpha4      = kp4*(MgATP/KMgATP)/( 1. + MgATP/KMgATP        ) ;
+
+    float   beta4       = km4*Ki2KKi*Ki2KKi/
+        (   OPNai2KNai*OPNai2KNai*OPNai2KNai + OPKi2KKi*OPKi2KKi - 1.0  ) ;
+
+    float x11          =   alpha4*alpha1*alpha2 +  beta2*beta4*beta3
+                +   alpha2*beta4*beta3   +  beta3*alpha1*alpha2   ;
+
+    float x22          =   beta2*beta1*beta4    +  alpha1*alpha2*alpha3
+                +   alpha3*beta1*beta4   +  alpha2*alpha3*beta4   ;
+
+    float x33          =   alpha2*alpha3*alpha4 +  beta3*beta2*beta1
+                +   beta2*beta1*alpha4   +  alpha3*alpha4*beta1   ;
+
+    float x44          =   beta4*beta3*beta2    +  alpha3*alpha4*alpha1
+                        +   beta2*alpha4*alpha1  +  beta3*beta2*alpha1    ;
+
+    float   xsum    = x11 + x22 + x33 + x44 ;
+    float   E11     = x11/xsum ;
+    float   E22     = x22/xsum ;
+    float   E33     = x33/xsum ;
+    float   E44     = x44/xsum ;
+
+    float   JNaKNa  = C_NaKNa   * 3.0 *( E11*alpha3   -   E22*beta3    ) ;
+    float   JNaKK   = C_NaKK    * 2.0 *( E44*beta1    -   E33*alpha1   ) ;
+    float   INaK    = C_NaK     * SGNaK * 30. *( JNaKNa+   JNaKK       ) ;
+
+    // INab ..............................................................
+    float   aNai        = alphaNass/gNai ;
+    float   bNao        = betaNao/gNao ;
+
+    float   INab        = C_Nab*PNab*(aNai*Nai - bNao) ;
+
+    // IKb ...............................................................
+    float   xKb         = 1.0/
+            (   1.0 + exp( ( 14.48 - V )/18.34 )           )  ;
+    float   GKb         = 0.003*SGKb ;
+
+    float   IKb         = C_Kb*GKb*xKb*(V-EK) ;
+
+    // JdiffNa, JdiffK ...................................................
+    float   tauDiffNa   = 2.0 * Ct_diffNa ;
+    float   tauDiffK    = 2.0 * Ct_diffK ;
+
+    float   JdiffNa     = C_diffNa * ( Nass    - Nai   )/tauDiffNa ;
+    JdiffK      = C_diffK  * ( Kss     - Ki    )/tauDiffK ;
+
+    // Ki ................................................................
+    float   dKi2dt      =
+        -( Ito + IKr + IKs + IK1 +IKb - 2.0*INaK )*Acap/(F*vmyo) +
+        JdiffK*vss/vmyo ;
+    Ki +=  dKi2dt*dt ;
+
+    // Nai ...............................................................
+    float   dNai2dt     =
+        -( INa + 3.0*INaCai + 3.0*INaK + INab)*Acap/(F*vmyo) +
+        JdiffNa*vss/vmyo ;
+    Nai += dNai2dt*dt ;
+
+    // Nass ..............................................................
+    float   dNass2dt    =
+        -( ICaNa + 3.0*INaCass  )*Acap/(F*vss)  - JdiffNa ;
+    Nass += dNass2dt*dt ;
+
+    // Cass ..............................................................
+    tdiffCa = 0.2 ;
+    JdiffCa = (Cass - Cai)/tdiffCa ;
+    JdiffCa*= C_diffCa ;
+
+    b1 = KmBSR + Cass ;
+    b1 *= b1 ;
+
+    b2 = KmBSL + Cass ;
+    b2 *= b2 ;
+
+    float betaCass = 1.0/(  1.0 + BSR*KmBSR/b1 + BSL*KmBSL*b2   ) ;
+
+    float dCass2dt = betaCass*
+                (   -( ICaL - 2.0*INaCass )*Acap/(2.0*F*vss)
+                    + Jrel*vjsr/vss
+                    - JdiffCa                                   ) ;
+
+    Cass += dCass2dt*dt ;
+
+    // Isum ..............................................................
+    float Isum =   INa
+                +   Ito
+                +   ICaL
+                +   ICaNa
+                +   ICaK
+                +   IKr
+                +   IKs
+                +   IK1
+                +   INaCa
+                +   INaK
+                +   INab
+                +   ICab
+                +   IKb
+                +   IpCa 
+                ;
+    // V .................................................................
+    vec4 lap ; vec2 size ;
+    laplacian( icolor4, size, lap ) ;
+    float odx = size.x/ds ;
+
+    float dv2dt = lap.r*(odx*odx)*diffCoef - Isum/C_m ;
+    
+    V += dv2dt*dt ;
+
+    // v: used for tracking wave back ....................................
+    v = hslow ;
+
+    // output color values ...............................................
+    ocolor4   = vec4( color4  ) ;
+    ocolor5   = vec4( color5  ) ;
+    ocolor6   = vec4( color6  ) ;
+    ocolor7   = vec4( color7  ) ;
+    ocolor8   = vec4( color8  ) ;
+    ocolor9   = vec4( color9  ) ;
+    ocolor10  = vec4( color10 ) ;
+   
+    return ;
+}
+
+
+</script><!-- end of comp2 shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='click' type='x-shader-fragment'>#version 300 es
+precision highp float ;
+precision highp int ;
+
+uniform sampler2D   inTexture ;
+uniform vec2        clickPosition ;
+uniform float       clickRadius ;
+
+in vec2 cc, pixPos ;
+
+layout (location = 0) out vec4 ocolor ;
+
+#define u       color.r
+// Main body of the shader
+void main() {
+    vec2  size  = vec2(textureSize(inTexture, 0)) ;
+
+    // read the color of the pixel .......................................
+    vec4 color = texture( inTexture , cc ) ;
+ 
+    if ( length(clickPosition - cc )< clickRadius ){
+        u = 1. ;
+    }
+
+    // output the color of the pixel .....................................
+    ocolor = color ;
+    return ;
+}
+
+
+
+</script><!-- end of click shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='display' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * display.frag : calculate the colors for the various regions of
+ * activation
+ *
+ * PROGRAMMER   : ABOUZAR KABOUDIAN
+ * DATE         : Mon 19 Oct 2020 14:23:21 (EDT)
+ * PLACE        : Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+precision highp float ;
+precision highp int ;
+
+// interface variables ---------------------------------------------------
+in vec2 cc ;
+uniform sampler2D   inColor ;
+uniform float       uThreshold, vThreshold ;
+uniform float       thickness ;
+
+layout (location=0) out vec4 ocolor ;
+
+// macros ----------------------------------------------------------------
+#define ut  uThreshold
+#define vt  vThreshold
+
+#define u   color.r
+#define v   color.g
+
+/*========================================================================
+ * main body 
+ *========================================================================
+ */
+void main(){
+    vec4 color = texture(inColor , cc ) ;
+
+    float f = (u>ut) ? 1. : 0. ;
+    float g = (v<vt) ? 1. : 0. ;
+
+    if ( f>0.5 && g >0.5 ){
+        ocolor = vec4(vec3(96., 192., 240.)/255.,1.) ;
+        return ;
+    }
+
+    if ( f > 0.5 ){
+        ocolor = vec4(vec3(240., 72., 72.)/255.,1.) ;
+        return ;
+    }
+
+    if ( g >0.5 ){
+        ocolor =  vec4(vec3(240., 192., 72.)/255.,1.) ;
+        return ;
+    }
+
+    ocolor = vec4(vec3(255., 255., 240.)/255.,1.) ;
+    return ;
+}
+
+
+</script><!-- end of display shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='defib' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * defib.frag   : Defibrillation shader
+ *
+ * PROGRAMMER   : ABOUZAR KABOUDIAN
+ * DATE         : Mon 19 Oct 2020 14:18:47 (EDT)
+ * PLACE        : Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+precision highp float ;
+precision highp int ;
+
+// interface variables ---------------------------------------------------
+in vec2 cc ;
+uniform sampler2D   inColor ;
+uniform float uThreshold, vThreshold ;
+uniform float thickness ;
+
+layout (location=0) out vec4 ocolor ;
+
+// macros ----------------------------------------------------------------
+
+#define ut  uThreshold
+#define vt  vThreshold
+
+#define u   color.r
+#define v   color.g
+
+#define noThetaDivs 20.
+
+/*========================================================================
+ * main body
+ *========================================================================
+ */
+void main(){
+    vec4 color = texture(inColor , cc ) ;
+    vec4 col ;
+
+    float f = (u>ut) ? 1. : -1. ;
+    float g = (v<vt) ? 1. : -1. ;
+    
+    float pi = acos(-1.) ;
+    vec2  dir ;
+    float theta ;
+
+    if (f<0. && g<0. ){
+        // search around the point to see if the point is in the region
+        // which requires stimulation
+        for(float i=0. ; i<noThetaDivs ;i+=1.){
+            theta = 2.*i*pi/noThetaDivs ;
+            dir = thickness*vec2(cos(theta),sin(theta)) ;
+            col = texture(inColor, cc + dir ) ;
+
+            if ( (((col.g<vt) ? 1. : -1.) *g) < 0. ){
+                u = 1. ;
+                break ;
+            }
+        }
+    }
+    
+    ocolor = vec4(color) ;
+    return ;
+}
+
+
+</script><!-- end of defib shader's source code -->
+
+
+
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<!-- main script - JavaScript code                                     -->
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<script>
+/*========================================================================
+ * get the source code for fragment shaders
+ *========================================================================
+ */
+function source( id ){
+    return document.getElementById( id ).innerHTML ;
+}
+var env = {} ; // Global variable
+
+/*========================================================================
+ * loadWebGL code
+ *========================================================================
+ */ 
+function loadWebGL(){
+    env.width  = 512 ;
+    env.height = 512 ;
+    env.time   = 0. ;
+
+/*------------------------------------------------------------------------
+ * creating textures for time stepping 
+ *------------------------------------------------------------------------
+ */
+    env.fcolors = [] ;
+    env.scolors = [] ;
+    for(var i=0; i<11; i++){
+        env['fcolor'+i] = new Abubu.Float32Texture( 
+                env.width, env.height, { pairable : true } ) ;
+        env['scolor'+i] = new Abubu.Float32Texture( 
+                env.width, env.height, { pairable : true } ) ;
+        env.fcolors.push(env['fcolor'+i]) ;
+        env.scolors.push(env['scolor'+i]) ;
+    }
+    env.colors = [ ...env.fcolors, ...env.scolors ] ;
+
+    class OvvrTargets1{
+        constructor( colors ){
+            for(let i=0; i<4 ; i++){
+                this["ocolor"+i] = {location : i, target: colors[i]} ;
+            }
+        }
+    }
+    class OvvrTargets2{
+        constructor( colors ){
+            for ( let i =0 ; i< 7 ; i++){
+                let j=4+i ;
+                this["ocolor"+j] = { location : i, target : colors[j] } ;
+            }
+        }
+    }
+
+/*------------------------------------------------------------------------
+ * Initial conditions  
+ *------------------------------------------------------------------------
+ */
+    // init sets 0 to 3 ..................................................
+    env.finit1 = new Abubu.Solver({
+        fragmentShader : source( 'init1' ) ,
+        targets : new OvvrTargets1( env.fcolors ) ,
+    } ) ;
+    env.sinit1 = new Abubu.Solver({
+        fragmentShader : source( 'init1' ) ,
+        targets : new OvvrTargets1( env.scolors ) ,
+    } ) ;
+
+    // init sets 4 to 11 .................................................
+    env.finit2 = new Abubu.Solver({
+        fragmentShader : source( 'init2' ) ,
+        targets : new OvvrTargets2( env.fcolors ) ,
+    } ) ;
+    env.sinit2 = new Abubu.Solver({
+        fragmentShader : source( 'init2' ) ,
+        targets : new OvvrTargets2( env.scolors ) ,
+    } ) ;
+
+    // function to initialize solution ...................................
+    env.initialize = function(){
+        env.finit1.run() ;
+        env.sinit1.run() ;
+        
+        env.finit2.run() ;
+        env.sinit2.run() ;
+
+
+        env.splot.init() ;
+        env.pplot.init() ;
+        env.vsgn.init(0) ;
+        env.osgn.init(0) ;
+
+        env.time = 0. ;
+    }
+/*------------------------------------------------------------------------
+ * Initiate all coeficients 
+ *------------------------------------------------------------------------
+ */
+    // current multipliers ...............................................
+    env.currentMultipliers = [
+        'C_Na',     'C_Nafast',     'C_Nalate',     'C_NaCa',   
+        'C_to',     'C_CaL',        'C_CaNa',       'C_CaK',        
+        'C_Kr',     'C_Ks',         'C_K1',         'C_NaCai',      
+        'C_NaCass', 'C_NaKNa',      'C_NaKK',       'C_NaK',    
+        'C_Nab',    'C_Kb',         'C_Cab',        'C_pCa',    
+        'C_relNP',  'C_relCaMK',    'C_upNP',       'C_upCaMK', 
+        'C_leak',   'C_up',         'C_tr',         'C_rel',        
+        'C_diffCa', 'C_diffNa',     'C_diffK'                       ] ;
+    
+    // time multipliers ..................................................
+    env.timeMultipliers = [
+        'Ct_m',     'Ct_h',         'Ct_j',         'Ct_hCaMKslow', 
+        'Ct_hslow', 'Ct_mL',        'Ct_jCaMK',     'Ct_hL', 
+        'Ct_hLCaMK','Ct_a',         'Ct_ifast',     'Ct_islow', 
+        'Ct_aCaMK', 'Ct_iCaMKfast', 'Ct_iCaMKslow', 'Ct_d',     
+        'Ct_ffast', 'Ct_fslow',     'Ct_fCafast',   'Ct_fCaslow', 
+        'Ct_jCa',   'Ct_fCaMKfast', 'Ct_fCaCaMKfast','Ct_n', 
+        'Ct_xrfast','Ct_xrslow',    'Ct_xs1',       'Ct_xs2', 
+        'Ct_xk1',   'Ct_relNP',     'Ct_relCaMK',   'Ct_tr', 
+        'Ct_diffCa','Ct_diffNa',    'Ct_diffK',                     ] ;
+
+    // scaling factors ...................................................
+    env.scalingFactors = [
+        'SGNalate' , 'SGto' ,       'SPCa',         'SGKr'     ,
+        'SGKs'     , 'SGK1' ,       'SGNaCa',       'SGNaK'    , 
+        'SGKb'     , 'SJrel' ,      'SJup',         'SCMDN' ] ;
+
+    env.cellType = 2 ; // default is endocardial cells
+
+    // model parameters ..................................................
+    env.dt          = 0.05 ;        /* time step size       */
+    env.ds          = 10. ;         /* domain size          */
+    env.C_m         = 1. ;          /* conductance          */
+    env.diffCoef    = 0.001 ;       /* diffusion            */
+
+    env.modelFloats = [ 'dt', 'ds', 'C_m', 'diffCoef' ] ;
+
+    // extra-cellular concentrations .....................................
+    env.Na_o        = 140 ;         /* Sodium               */
+    env.Ca_o        = 1.8 ;         /* Calcium              */ 
+    env.K_o         = 5.4 ;         /* Potasium             */
+
+    env.extraCellularConcentrations = [ 'Na_o', 'Ca_o', 'K_o' ] ;
+
+    // all float uniforms to be sent to comp1 and comp2 ..................
+    env.compFloats = [
+        ...env.currentMultipliers,  ...env.timeMultipliers,
+        ...env.scalingFactors,      ...env.modelFloats,
+        ...env.extraCellularConcentrations ] ;
+
+    env.compInts = [ 
+        'cellType' ] ;
+    
+    // all float uniforms that need to be initialized with ones ..........
+    env.oneFloats = [
+        ...env.currentMultipliers,  ...env.timeMultipliers,
+        ...env.scalingFactors ] ;
+
+    // initialize values to 1.0 ..........................................
+    for(let i in env.oneFloats){
+        let name = env.oneFloats[i] ;
+        env[name] = 1. ;
+    }
+
+    env.C_Na = 1. ;
+    env['C_Na'] = 1. ;
+    // Common uniforms for comp1 & comp2 solvers .........................
+    class CompUniforms{
+        constructor( obj, floats, ints){
+            for(let i in floats ){
+                let name    = floats[i] ;
+                this[name]  = { type :'f', value : obj[name] } ;
+            }
+            for(let i in ints){
+                let name    = ints[i] ;
+                this[name]  = { type : 'i', value : obj[name] } ;
+            }
+        }
+    }
+
+    // uniforms for comp1 solvers ........................................
+    class Comp1Uniforms extends CompUniforms{
+        constructor( _fc, _sc ){
+            super(env, env.compFloats, env.compInts) ;
+            for(let i=0; i<11 ; i++){
+                this['icolor'+i] = { type : 't', value : _fc[i] } ;
+            }   
+        }
+    }
+
+    // uniforms for comp2 solvers ........................................
+    class Comp2Uniforms extends CompUniforms{
+        constructor( _fc, _sc ){
+            super(env, env.compFloats, env.compInts ) ; 
+            // colors already updated by comp1
+            for(let i=0; i<4 ; i++){
+                this['icolor'+i] = { type : 't', value : _sc[i] } ;
+            }
+            // other colors
+            for(let i=4; i<11 ; i++){
+                this['icolor'+i] = { type : 't', value : _fc[i] } ;
+            }
+        }
+    } ;
+
+/*------------------------------------------------------------------------
+ * marching steps 
+ *------------------------------------------------------------------------
+ */
+    // comp1 solvers .....................................................
+    env.fcomp1 = new Abubu.Solver({
+        fragmentShader : source('comp1') ,
+        uniforms : new Comp1Uniforms( env.fcolors, env.scolors ) ,
+        targets : new OvvrTargets1( env.scolors ) ,
+    } ) ;
+    env.scomp1 = new Abubu.Solver({
+        fragmentShader : source('comp1') ,
+        uniforms : new Comp1Uniforms( env.scolors, env.fcolors ) ,
+        targets : new OvvrTargets1( env.fcolors ) ,
+    } ) ;
+
+    // comp2 solvers .....................................................
+    env.fcomp2 = new Abubu.Solver({
+        fragmentShader : source( 'comp2' ) ,
+        uniforms : new Comp2Uniforms( env.fcolors, env.scolors ) ,
+        targets : new OvvrTargets2( env.scolors ) ,
+    } ) ;
+
+    env.scomp2 = new Abubu.Solver({
+        fragmentShader : source( 'comp2' ) ,
+        uniforms : new Comp2Uniforms( env.scolors, env.fcolors ) ,
+        targets : new OvvrTargets2( env.fcolors ) ,
+    } ) ;
+
+    env.comps = [ env.fcomp1, env.fcomp2, env.scomp1, env.scomp2 ] ;
+    // marches the solution for two time steps ...........................
+    env.march = function(){
+        env.fcomp1.render() ;
+        env.fcomp2.render() ;
+        env.scomp1.render() ;
+        env.scomp2.render() ;
+        env.time += 2.*env.dt ;
+    } ;
+
+/*------------------------------------------------------------------------
+ * click to excite 
+ *------------------------------------------------------------------------
+ */
+    var click = new Abubu.Solver({
+        fragmentShader : source( 'click' ) ,
+        uniforms : {
+            inTexture       : { type : 't', value  : env.fcolor4    } ,
+            clickRadius     : { type : 'f', value  : 0.1            } ,
+            clickPosition   : { type : 'v2', value : [0.5,0.5]      } ,
+        } ,
+        targets : {
+            ocolor : { location : 0 , target : env.scolor4 } ,
+        }
+    } ) ;
+    
+    var clickCopy = new Abubu.Copy( env.scolor4, env.fcolor4 ) ;
+    
+    var mouseDrag_1 = new Abubu.MouseListener({
+        canvas : document.getElementById('canvas_1') ,
+        event : 'drag' ,
+        callback : function(e){
+            click.uniforms.clickPosition.value = e.position ;
+            click.render() ;
+            clickCopy.render() ;
+        }
+    } ) ; 
+
+    var mouseDrag_2 = new Abubu.MouseListener({
+        canvas : document.getElementById('canvas_2') ,
+        event : 'drag' ,
+        callback : function(e){
+            click.uniforms.clickPosition.value = e.position ;
+            click.render() ;
+            clickCopy.render() ;
+        }
+    } ) ; 
+
+/*------------------------------------------------------------------------
+ * shift-click to set probe position 
+ *------------------------------------------------------------------------
+ */
+    var setProbe_1 = new Abubu.MouseListener({
+        canvas : document.getElementById('canvas_1') ,
+        event  : 'click' ,
+        shift  : true ,
+        callback : function(e){
+            env.pplot.probePosition = e.position ;
+            env.pplot.init() ;
+            env.vplot.setProbePosition(e.position) ;
+            env.splot.setProbePosition(e.position) ;
+            env.splot.init() ;
+            env.pplot.init() ;
+            env.vplot.init() ;
+        }
+    } ) ;
+
+    var setProbe_2 = new Abubu.MouseListener({
+        canvas : document.getElementById('canvas_2') ,
+        event  : 'click' ,
+        shift  : true ,
+        callback : function(e){
+            env.pplot.probePosition = e.position ;
+            env.pplot.init() ;
+            env.vplot.setProbePosition(e.position) ;
+            env.splot.setProbePosition(e.position) ;
+            env.splot.init() ;
+            env.pplot.init() ;
+            env.vplot.init() ;
+        }
+    } ) ;
+/*------------------------------------------------------------------------
+ * defibrilate 
+ *------------------------------------------------------------------------
+ */
+    env.defib = {} ;
+    env.thickness  = 0.05 ;
+    env.uThreshold = -20 ;
+    env.vThreshold = 0.45 ;
+
+    env.defib_s1 = new Abubu.Solver({
+        fragmentShader : source('defib') ,
+        uniforms :{
+            inColor : { type : 's', value : env.fcolor4, 
+                        magFilter: 'linear' } ,
+            thickness  : { type : 'f', value : env.thickness   } ,
+            uThreshold : { type : 'f', value : env.uThreshold  } ,
+            vThreshold : { type : 'f', value : env.vThreshold  } ,
+        } ,
+        targets : {
+            ocolor : { location : 0 , target : env.scolor4 } ,
+        }
+    } ) ;
+    
+    env.defib_s2 = new Abubu.Copy(env.scolor4, env.fcolor4) ;
+    env.defibrillate = function(){
+        env.defib_s1.render() ;
+        env.defib_s2.render() ;
+    }
+
+/*------------------------------------------------------------------------
+ * save and load file 
+ *------------------------------------------------------------------------
+ */
+
+    // save file .........................................................
+    env.csvFileName = 'colorsSets_0_10.csv' ;
+    env.saveCsvFile = function(){
+        var link = document.createElement('a') ;
+        var data = "data:text;charset=utf-8," +
+            env.width + ',' + 
+            env.height ;
+        var width   = env.width ;
+        var height = env.height ;
+        var fvals = {} ;
+        for(let i=0;i<11; i++){
+            let color = "fcolor"+i ;
+            fvals[color] = env[color].value ;
+        }
+
+        for(var i=0 ; i<(width*height) ; i++){
+            var indx = i*4 ;
+            let rows = "" ;
+            for( let j=0; j<11; j++){
+                name = "fcolor"+j ;
+                rows += ',' + 
+                fvals[name][indx  ].toExponential()+ ',' +
+                fvals[name][indx+1].toExponential()+ ',' +
+                fvals[name][indx+2].toExponential()+ ',' +
+                fvals[name][indx+3].toExponential() ;
+            }
+            data += rows ;
+        }
+        
+        var csv = encodeURI( data ) ;
+        link.setAttribute( 'href', csv ) ;
+        link.setAttribute( 'download', env.csvFileName ) ;
+        link.click() ;
+    }
+
+    // load file .........................................................
+    env.loadCsvFile = document.createElement('input') ;
+    env.loadCsvFile.setAttribute('type', 'file') ;
+    env.loadCsvFile.onchange = function(){
+        /* check if a no file was selected */
+        if ( !env.loadCsvFile.files[0] ){        
+            return ;
+        } ;
+    
+        var file = env.loadCsvFile.files[0] ;
+        var reader = new FileReader() ;
+        reader.readAsText(file) ;
+    
+        // only the when the file is loaded it can be analyzed
+        reader.onload = function(event){
+            var result  = event.target.result ;
+            var data = result.split(',') ;
+    
+            var width = parseInt(data[0]) ;
+            var height = parseInt(data[1]) ;
+    
+            var tabs = [] ;
+            for(var i = 0 ; i<11 ; i++){
+                tabs.push( new Float32Array(width*height*4) ) ;
+            }
+            
+            var p = 2 ;
+            var indx ;
+
+            for (var i=0 ; i< (width*height) ; i++){ // modify accordingly
+                indx = i*4 ;
+                for(var j=0 ; j<11 ; j++){
+                    tabs[j][ indx   ] = parseFloat( data[p++]) ;
+                    tabs[j][ indx+1 ] = parseFloat( data[p++]) ;
+                    tabs[j][ indx+2 ] = parseFloat( data[p++]) ;
+                    tabs[j][ indx+3 ] = parseFloat( data[p++]) ;
+                }
+             }
+
+            for( var j=0 ; j<11; j++){
+                env.fcolors[j].data = tabs[j] ;
+                env.scolors[j].data = tabs[j] ;
+            }
+        }
+    }
+    
+/*------------------------------------------------------------------------
+ * Postprocessing 
+ *------------------------------------------------------------------------
+ */
+    // voltage plot ------------------------------------------------------
+    env.vplot = new Abubu.Plot2D({
+        target      : env.fcolor4 ,
+        channel     : 'r' ,
+        minValue    : -90 ,
+        maxValue    : 30 ,
+        colorbar    : true ,
+        probeVisible: true ,
+        canvas      : document.getElementById('canvas_1') ,
+    } ) ;
+    env.vplot.init() ;
+
+    // tplot -------------------------------------------------------------
+    env.tplot = new Abubu.Solver({
+        fragmentShader : source("display") ,
+        uniforms : {
+            inColor     : { type : 't', value : env.fcolor4     } ,
+            thickness   : { type : 'f', value : env.thickness   } ,
+            uThreshold  : { type : 'f', value : env.uThreshold  } ,
+            vThreshold  : { type : 'f', value : env.vThreshold  } ,
+        } ,
+        canvas :  document.getElementById('canvas_2') 
+    } ) ;
+
+    // signal plots ------------------------------------------------------
+    env.splot = new Abubu.SignalPlot({
+        noPltPoints : 1024, // number of sample points
+        grid : 'on', 
+        nx   : 10 , // number of division in x 
+        ny   : 12 , // ... in y 
+
+        xticks : {  mode : 'auto', unit : 'ms', font : '11pt Times' } ,
+        yticks : {  mode : 'auto', unit : '' , 
+                    font : '12pt Times',precision : 1  } ,
+        canvas : document.getElementById('canvas_3') 
+    } ) ;
+
+    env.osgn = env.splot.addSignal( env.fcolor4, {
+            channel : 'g',
+            minValue : -.1,
+            maxValue : 1.1 ,
+            restValue : 0. ,
+            color : [ 0.3,0.,0.0 ],
+            visible : true ,
+            timewindow : 1000 , 
+            probePosition : [0.5,0.5] 
+    } ) ;
+
+    // voltage signal ....................................................
+    env.vsgn = env.splot.addSignal( env.fcolor4, {
+            channel : 'r',
+            minValue : -90,
+            maxValue : 30 ,
+            restValue : -83.0 ,
+            color : [ 0.,.4,0.0 ],
+            visible : true ,
+            timewindow : 1000 , 
+            probePosition : [0.5,0.5] 
+    } ) ;
+
+
+    // updateSignals -----------------------------------------------------
+    env.updateSignals= function(){
+        env.vsgn.update(env.time) ;
+        env.osgn.update(env.time) ;
+    }
+
+    // phase plot --------------------------------------------------------
+    env.pplot = new Abubu.PhasePlot({
+        canvas : document.getElementById('canvas_4') ,
+        grid : 'on',
+        probePosition : [0.5,0.5], 
+    
+        // horizontal axis info
+        xcolor      : env.fcolor4 ,
+        xchannel    : 'g' ,
+        xmin        : -.1 ,
+        xmax        : 1.1 ,
+        nx          : 12, 
+    
+        // vertical axis info
+        ycolor      : env.fcolor4 ,
+        ychannel    : 'r' ,
+        ymin        : -90 ,
+        ymax        : 30 ,
+        ny          : 12, 
+    
+        // xticks
+        xticks : {  
+            mode : 'auto', 
+            unit : '', 
+            font : '11pt Times' , precision : 2 } ,
+        
+        // yticks
+        yticks : {  
+            mode : 'auto', unit : '', font : '11pt Times', 
+            precision : 1 } ,
+    }) ; 
+
+    // refreshDisplay ----------------------------------------------------
+    env.refreshDisplay = function(){
+        env.pplot.render() ;
+        env.vplot.render() ;
+        env.splot.render() ;
+        env.tplot.render() ;
+    }
+
+/*------------------------------------------------------------------------
+ * Run sequence
+ *------------------------------------------------------------------------
+ */
+    env.skip = 30 ;
+    env.running = false ;
+    env.run = function(){
+        if (env.running){
+            for(var i = 0 ; i<env.skip ; i++){
+                env.march() ;
+                env.updateSignals() ; 
+                if ( i%5 === 0 ){
+                    env.pplot.update() ;
+                }
+            }
+        }
+        env.refreshDisplay() ;
+        requestAnimationFrame(env.run) ;
+    }
+
+    createGui() ;
+    env.initialize() ;
+    env.run() ;
+}
+
+/*========================================================================
+ * add multiple parameters to the GUI
+ *========================================================================
+ */ 
+function addToGui( 
+        guiElemenent ,  // gui element to add options into
+        obj,            // object that holds parameters
+        paramList,      // array of strings that contains list 
+                        // of parmeters to be added
+        solverList      // array of solvers that need to be update upon 
+                        // change of a parameter through gui interactions
+    ){
+    var elements = {} ;
+    for(i in paramList){
+        var param = paramList[i] ;
+        elements[param] = guiElemenent.add(obj, param )  ;
+        elements[param].onChange(function(){
+            console.log(this) ;
+            Abubu.setUniformInSolvers( 
+                    this.property , // this refers to the GUI element 
+                    this.object[this.property] , 
+                    solverList ) ;
+        } ) ;
+    }
+    return elements ;
+}
+
+/*========================================================================
+ * createGui
+ *========================================================================
+ */ 
+function createGui(){
+    var gui = new Abubu.Gui() ;     /*  create a graphical user 
+                                        interface               */
+    var panel = gui.addPanel() ;    /*  add a panel to the GUI  */
+
+    // model parameters ..................................................
+    var mdl = panel.addFolder("Model Parameters") ;
+
+    addToGui(mdl, env,env.modelFloats , env.comps) ;
+
+    var crnt = mdl.addFolder("Current Multipliers") ;
+    addToGui(crnt, env,env.currentMultipliers , env.comps) ;
+    
+    var tcst = mdl.addFolder("Time Constant Multipliers") ;
+    addToGui(tcst, env,env.timeMultipliers , env.comps) ;
+
+    var scl  = mdl.addFolder("Scaling Factors") ;
+    addToGui( scl,env, env.scalingFactors, env.comps ) ;
+
+
+    // defibrilation -----------------------------------------------------
+    var dfb = panel.addFolder("Defibrillation") ;
+    dfb.elements = addToGui( dfb, env, 
+        [
+            "thickness" ,
+            "uThreshold" ,
+            "vThreshold" 
+        ] , [ env.defib_s1, env.tplot ] ) ;
+   
+    dfb.add(env,'defibrillate') ;
+    dfb.open() ;
+    
+    // csv files ---------------------------------------------------------
+    var csv = panel.addFolder('Save and Load CSV') ;
+    csv.add(env,'csvFileName' ) ;
+    csv.add(env,'saveCsvFile' ) ;
+    csv.add(env.loadCsvFile , 'click').name('loadCsvFile') ;
+
+    // execution .........................................................
+    var exe = panel.addFolder('Execution') ;
+    exe.add(env,'time').listen() ;
+    exe.add(env,'skip') ;
+    exe.add(env,'initialize') ;
+    exe.add(env,'running') ;
+    exe.open() ;
+}
+
+</script>
+
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<!-- body of the html page                                             -->
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<body onload='loadWebGL();'>
+    <h1>The OVVR Model</h1>
+    <table>
+        <tr>
+            <td>
+                <canvas id=canvas_1 width=512 height=512>
+                    Your browser doesn't support HTML5.0
+                </canvas>
+            </td>
+            <td>
+                <canvas id=canvas_2 width=512 height=512>
+                    Your browser doesn't support HTML5.0
+                </canvas>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <canvas id=canvas_3 width=512 height=512>
+                    Your browser doesn't support HTML5.0
+                </canvas>
+            </td>
+            <td>
+                <canvas id=canvas_4 width=512 height=512>
+                    Your browser doesn't support HTML5.0
+                </canvas>
+            </td>
+        </tr>
+    </table>
+
+
+</body>
+</html>

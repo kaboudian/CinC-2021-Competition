@@ -1,0 +1,6 @@
+
+/home/abouzar/bckp/replaced.2018-06-13-at-17-19-14.128407220.tar.gz
+In directory [app], replaced all	ComputeGL ==> Abubu
+
+/home/abouzar/bckp/replaced.2018-06-13-at-17-26-56.616164146.tar.gz
+In directory [app], replaced all	ComputeGL ==> Abubu

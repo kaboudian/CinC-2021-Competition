@@ -1,0 +1,1282 @@
+<!doctype html>
+<html>
+<head>
+    <title>FHN</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <script src='https://abubujs.org/libs/Abubu.latest.js' 
+	    type='text/javascript'></script>
+<style>
+/* unvisited link */
+a:link {
+    	color: blue;
+}
+
+/* visited link */
+a:visited {
+    	color: blue;
+}
+
+/* mouse over link */
+a:hover {
+    	color: hotpink;
+}
+
+/* selected link */
+a:active {
+    	color: blue;
+}
+/*
+li{
+    	margin : 10px 6px ;
+} */
+
+body {
+	counter-reset: h1;
+}
+
+
+h1{
+        max-width: 1024px ;
+	text-align:left;
+	color: white;
+       	background-color: #00254c;
+       	padding-left: 20px ;
+       	padding-top: 10px ;
+       	padding-bottom: 10px ;
+       	border-radius: 10px;
+}
+
+h2 {
+        max-width: 1024px ;
+    	color: #00254c;
+    	background-color: #e5e5e5 ;
+    	padding-left: 20px ;
+    	padding-top: 2.5px ;
+    	padding-bottom: 2.5px ;
+
+    	border-radius: 10px;
+}
+
+h3 {
+        max-width: 1024px ;
+    	color: #00254c;
+    	background-color: #f0f0f0 ;
+    	padding-left: 20px ;
+    	padding-top: 2.5px ;
+    	padding-bottom: 2.5px ;
+    	border-radius: 10px;
+}
+
+h4 {
+        max-width: 1024px ;
+    	color: #00254c;
+    	background-color: #fafafa ;
+    	padding-left: 20px ;
+    	padding-top: 2.5px ;
+    	padding-bottom: 2.5px ;
+    	border-radius: 10px;
+}
+
+p{
+    max-width : 700px  ;
+    padding-left: 10px ;
+}
+canvas.clickable:hover{
+    cursor:pointer ;
+    cursor:hand ;
+}
+
+.footer{
+    position : fixed ; 
+    max-width: 1024px ;
+    border-radius:10px ;
+    left : 0px ;
+    width : 100% ;
+    background-color: #fafafa;
+    color:black ;
+    bottom: 0px ;
+    text-align : left ;
+    font: 'italic 12pt Times' ;
+}
+
+canvas{
+    border-style: solid ;
+    border-width: 1px ;
+    border-color: black ;
+}
+</style>
+</head>
+
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<!-- body of the html page                                             -->
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<body>
+    <h1>The FitzHugh-Nagumo Model</h1>
+    <table>
+        <tr>
+            <td>
+                <canvas id=canvas_1 width=512 height=512>
+                    Your browser doesn't support HTML5.0
+                </canvas>
+            </td>
+            <td>
+                <canvas id=canvas_2 width=512 height=512>
+                    Your browser doesn't support HTML5.0
+                </canvas>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <canvas id=canvas_3 width=512 height=512>
+                    Your browser doesn't support HTML5.0
+                </canvas>
+            </td>
+            <td>
+                <canvas id=canvas_4 width=512 height=512>
+                    Your browser doesn't support HTML5.0
+                </canvas>
+            </td>
+        </tr>
+    </table>
+
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<!-- All shaders included here (codes written in GLSL)                 -->
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+
+<!-- ***************************************************************** -->
+<script id='init' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * init.frag    : initialize the domain
+ *
+ * PROGRAMMER   : ABOUZAR KABOUDIAN
+ * DATE         : Mon 19 Oct 2020 14:34:45 (EDT)
+ * PLACE        : Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+
+precision highp float ;
+precision highp int ;
+
+in vec2 cc, pixPos ;
+
+layout (location = 0) out vec4 color1 ;
+layout (location = 1) out vec4 color2 ;
+
+void main() {
+    vec4 color = vec4(0.) ;
+    
+    color1 = color ;
+    color2 = color ;
+    return ;
+}
+
+
+</script><!-- end of init shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='march' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * march.frag   : march the solution for one time step
+ *
+ * PROGRAMMER   : ABOUZAR KABOUDIAN
+ * DATE         : Mon 19 Oct 2020 14:35:07 (EDT)
+ * PLACE        : Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+
+// precision of variables ................................................
+precision highp float ;
+precision highp int ;
+
+// interfacial variables .................................................
+uniform sampler2D   inTexture ;
+uniform float       dt, diffCoef ;
+uniform float       period ;
+uniform bool        pacemakerActive , pacemakerCircular ;
+uniform float       pacemakerRadius , pacemakerX , pacemakerY ;
+uniform float       a, b, epsilon ;
+
+in vec2 cc, pixPos ;
+
+layout (location = 0) out vec4 ocolor ;
+
+// macros assigning color channels to values .............................
+#define u       color.r
+#define v       color.g
+#define time    color.b
+
+/*========================================================================
+ * main body of the shader
+ *========================================================================
+ */
+void main() {
+    vec2  size  = vec2(textureSize(inTexture, 0)) ;
+    float dx    = 10./size.x ;
+
+    vec2 ii = vec2(1.,0.)/size ;
+    vec2 jj = vec2(0.,1.)/size ;
+
+    // read the color of the pixel .......................................
+    vec4 color = texture( inTexture , cc ) ;
+    
+    vec4 laplacian = 
+            texture( inTexture, cc-ii )
+        +   texture( inTexture, cc+ii )
+        +   texture( inTexture, cc-jj )
+        +   texture( inTexture, cc+jj )
+        -4.*texture( inTexture, cc    ) ;
+    u += dt*diffCoef*laplacian.r/(dx*dx) ;
+
+    // gate time derivatives for FHN .....................................
+    float du2dt = u*(1.-u)*(u-a) - v ;
+    float dv2dt = epsilon*(b*u-v) ;
+
+    // marching gates ....................................................
+    u += du2dt*dt ;
+    v += dv2dt*dt ;
+
+    // pacemaker logic ...................................................
+    time += dt ;
+
+    if (time > period ){
+        time = 0. ;
+        if (pacemakerActive){
+            if (pacemakerCircular){
+                if ( length(cc - vec2(pacemakerX, pacemakerY)) <
+                        pacemakerRadius ){
+                    u = 1. ;
+                }
+            }else{
+                if ( (abs( cc.x - pacemakerX )*2.) < pacemakerRadius ){
+                    u = 1. ;
+                }
+            }
+        }
+    }
+
+    // output the color of the pixel .....................................
+    ocolor = color ;
+    return ;
+}
+
+
+</script><!-- end of march shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='click' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * click.frag   : Changes u or v values around a click location
+ *
+ * PROGRAMMER   : ABOUZAR KABOUDIAN
+ * DATE         : Mon 19 Oct 2020 14:34:00 (EDT)
+ * PLACE        : Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+
+precision highp float ;
+precision highp int ;
+
+uniform sampler2D   inTexture ;
+uniform vec2    clickPosition ;
+uniform float   clickRadius ;
+uniform float   clickU,clickV ;
+uniform bool    clickAlterU, clickAlterV ;
+
+in vec2 cc, pixPos ;
+
+layout (location = 0) out vec4 ocolor ;
+
+#define u       color.r
+#define v       color.g
+#define time    color.b
+// Main body of the shader
+void main() {
+    vec2  size  = vec2(textureSize(inTexture, 0)) ;
+
+    // read the color of the pixel .......................................
+    vec4 color = texture( inTexture , cc ) ;
+ 
+    if ( length(clickPosition - cc )< clickRadius ){
+        if ( clickAlterU ){
+            u = clickU ;
+        }
+        if ( clickAlterV ){
+            v = clickV ;
+        }
+    }
+
+    // output the color of the pixel .....................................
+    ocolor = color ;
+    return ;
+}
+
+
+</script><!-- end of click shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='2dPhaseMap' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * display.frag : calculate the colors for the various regions of
+ * activation
+ *
+ * PROGRAMMER   : ABOUZAR KABOUDIAN
+ * DATE         : Mon 19 Oct 2020 14:23:21 (EDT)
+ * PLACE        : Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+precision highp float ;
+precision highp int ;
+
+// interface variables ---------------------------------------------------
+in vec2 cc ;
+uniform sampler2D   inColor ;
+uniform float       uThreshold, vThreshold ;
+uniform float       thickness ;
+
+layout (location=0) out vec4 ocolor ;
+
+// macros ----------------------------------------------------------------
+#define ut  uThreshold
+#define vt  vThreshold
+
+#define u   color.r
+#define v   color.g
+
+/*========================================================================
+ * main body 
+ *========================================================================
+ */
+void main(){
+    vec4 color = texture(inColor , cc ) ;
+
+    float f = (u>ut) ? 1. : 0. ;
+    float g = (v>vt) ? 1. : 0. ;
+
+    if ( f>0.5 && g >0.5 ){
+        ocolor = vec4(vec3(96., 192., 240.)/255.,1.) ;
+        return ;
+    }
+
+    if ( f > 0.5 ){
+        ocolor = vec4(vec3(240., 72., 72.)/255.,1.) ;
+        return ;
+    }
+
+    if ( g >0.5 ){
+        ocolor =  vec4(vec3(240., 192., 72.)/255.,1.) ;
+        return ;
+    }
+
+    ocolor = vec4(vec3(255., 255., 240.)/255.,1.) ;
+    return ;
+}
+
+
+</script><!-- end of 2dPhaseMap shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='defib_s1' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * defib.frag   : Defibrillation shader
+ *
+ * PROGRAMMER   : ABOUZAR KABOUDIAN
+ * DATE         : Mon 19 Oct 2020 14:18:47 (EDT)
+ * PLACE        : Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+precision highp float ;
+precision highp int ;
+
+// interface variables ---------------------------------------------------
+in vec2 cc ;
+uniform sampler2D   icolor ;
+uniform float uThreshold, vThreshold ;
+uniform float thickness ;
+
+layout (location=0) out vec4 ocolor ;
+
+// macros ----------------------------------------------------------------
+
+#define ut  uThreshold
+#define vt  vThreshold
+
+#define u   color.r
+#define v   color.g
+
+#define noThetaDivs 20.
+
+/*========================================================================
+ * main body
+ *========================================================================
+ */
+void main(){
+    vec4 color = texture(icolor , cc ) ;
+    vec4 col ;
+
+    float f = (u>ut) ? 1. : -1. ;
+    float g = (v>vt) ? 1. : -1. ;
+    
+    float pi = acos(-1.) ;
+    vec2  dir ;
+    float theta ;
+
+    float o = 0. ;
+
+    if (f<0. && g<0. ){
+        // search around the point to see if the point is in the region
+        // which requires stimulation
+        for(float i=0. ; i<noThetaDivs ;i+=1.){
+            theta = 2.*i*pi/noThetaDivs ;
+            dir = thickness*vec2(cos(theta),sin(theta)) ;
+            col = texture(icolor, cc + dir ) ;
+
+            if ( (((col.g>vt) ? 1. : -1.) *g) < 0. ){
+                o = 1. ;
+                break ;
+            }
+        }
+    }
+    
+    ocolor = vec4(o) ;
+    return ;
+}
+
+
+</script><!-- end of defib_s1 shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='defib_s2' type='x-shader-fragment'>#version 300 es
+
+precision highp float ;
+precision highp int ;
+
+in vec2 cc ;
+
+uniform sampler2D icolor ;
+uniform int mx, my ;
+
+layout (location = 0 ) out vec4 ocolor ;
+
+void main(){
+    vec4 color =texture(icolor, cc)  ;
+    ivec2 size = textureSize( icolor, 0 ) ;
+
+    ivec2 nxy = (size/ivec2(mx,mx))/2 ;
+
+    vec2  ii = vec2(1.,0.)/vec2(size) ;
+    vec2  jj = vec2(0.,1.)/vec2(size) ;
+
+    for( int i=(-nxy.x) ; i<=nxy.x ; i++){
+        for( int j=(-nxy.y) ; j<=nxy.y ; j++){
+            if( texture( icolor, cc+ii*float(i)+jj*float(j) ).r>0.5 ){
+                color.r = 1.  ;
+                break ;
+            }
+        }
+    }
+
+    ocolor = vec4(color.r) ;
+    return ;
+}
+
+
+</script><!-- end of defib_s2 shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='defib_s3' type='x-shader-fragment'>#version 300 es
+
+precision highp float ;
+precision highp int ;
+
+in vec2 cc ;
+
+uniform sampler2D   icolor ;
+uniform sampler2D   activeElectrodes ;
+uniform sampler2D   electrodeCoordinates ;
+uniform float       electrodeSize ;
+
+layout (location = 0 ) out vec4 ocolor ;
+
+#define paces(l)    (texture( activeElectrodes, l).r>.5 &&  \
+        length(cc-(l))<electrodeSize )
+void main(){
+    vec4    color  = texture( icolor, cc ) ;
+    vec2    crd    = texture( electrodeCoordinates,   cc ).xy ;
+    float   dx  = (cc.x - crd.x )>0. ? 1. : -1. ;
+    float   dy  = (cc.y - crd.y )>0. ? 1. : -1. ;
+
+    vec2 size   = vec2(textureSize(electrodeCoordinates,0).xy) ;
+    vec2 ii = vec2(dx,0.)/size ;
+    vec2 jj = vec2(0.,dy)/size ;
+
+    if ( paces( crd+ii      ) ) color.r = 1. ;
+    if ( paces( crd+jj      ) ) color.r = 1. ;
+    if ( paces( crd+ii+jj   ) ) color.r = 1. ;
+    if ( paces( crd         ) ) color.r = 1. ;
+
+    ocolor = vec4(color) ;
+    return ;
+}
+
+
+</script><!-- end of defib_s3 shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='active' type='x-shader-fragment'>#version 300 es
+
+precision highp float ;
+precision highp int ;
+
+in vec2 cc  ;
+
+uniform sampler2D icolor ;
+
+out vec4 ocolor ;
+
+void main(){
+    float o = texture(icolor, cc).r > 0.5 ? 1.: 0. ;
+
+    ocolor = vec4(o,0.,0.,1.) ;
+}
+
+
+</script><!-- end of active shader's source code -->
+
+<!-- ***************************************************************** -->
+<script id='coordinator' type='x-shader-fragment'>#version 300 es
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ * coordinator.frag :   determine the closest coordinate
+ *
+ * PROGRAMMER   : ABOUZAR KABOUDIAN
+ * DATE         : Fri 13 Nov 2020 15:42:00 (EST)
+ * PLACE        : Chaos Lab @ GaTech, Atlanta, GA
+ *@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+precision highp float ;
+precision highp int ;
+
+in vec2 cc ; 
+
+layout (location = 0) out vec4 crd ; 
+
+void main(){
+    crd = vec4(cc.x, cc.y, 0.,1.) ;
+    return ;
+}
+
+
+</script><!-- end of coordinator shader's source code -->
+
+
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<!-- main script - JavaScript code                                     -->
+<!--&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&-->
+<script>
+// get the shader source by its id .......................................
+function source(id){
+    return document.getElementById(id).text ;
+}
+
+// Get the canvas ........................................................
+var canvas_1 = document.getElementById('canvas_1') ;
+var canvas_2 = document.getElementById('canvas_2') ;
+var canvas_3 = document.getElementById('canvas_3') ;
+var canvas_4 = document.getElementById('canvas_4') ;
+
+// Object to be used for interactions ....................................
+var env = {} ;
+
+env.width               = 512 ;
+env.height              = 512 ;
+env.a                   = 0.1 ;
+env.b                   = 0.3 ;
+env.epsilon             = 0.01 ;
+
+env.dt                  = 0.05 ;
+env.diffCoef            = 0.001 ;
+env.time                = 0 ;
+
+env.running             = false ;
+env.skip                = 40 ;
+    
+env.period              = 200 ;
+env.pacemakerActive     = false ;
+env.pacemakerRadius     = 0.1 ;
+env.pacemakerX          = 0. ;
+env.pacemakerY          = 0. ;
+env.pacemakerCircular   = true ;
+
+// defining the textures .................................................
+var fcolor = new Abubu.Float32Texture(512,512, 
+    { pairable : true } ) ;
+var scolor = new Abubu.Float32Texture(512,512 ) ;
+scolor.pairable = true ;
+
+// Setup a solver ........................................................
+var init = new Abubu.Solver( {
+    fragmentShader  : source('init'),
+    targets : {
+        color1 : { location :0, target : fcolor  } ,
+        color2 : { location :1, target : scolor  } ,
+
+    }
+} ) ;
+init.render() ;
+
+// marching steps ........................................................
+function marchUniforms(_inTexture){
+    this.inTexture          = { type : 't', value : _inTexture          } ; 
+    this.dt                 = { type : 'f', value : env.dt              } ; 
+    this.diffCoef           = { type : 'f', value : env.diffCoef        } ; 
+    this.period             = { type : 'f', value : env.period          } ;
+    this.a                  = { type : 'f', value : env.a               } ;
+    this.b                  = { type : 'f', value : env.b               } ;
+    this.epsilon            = { type : 'f', value : env.epsilon         } ;
+    this.pacemakerActive    = { type : 'b', value : env.pacemakerActive } ;
+    this.pacemakerCircular  = { type : 'b', value : env.pacemakerCircular} ;
+    this.pacemakerRadius    = { type : 'f', value : env.pacemakerRadius } ;
+    this.pacemakerX         = { type : 'f', value : env.pacemakerX      } ;
+    this.pacemakerY         = { type : 'f', value : env.pacemakerY      } ;
+    return this ;
+}
+
+// even (f) time steps ---------------------------------------------------
+var fmarch = new Abubu.Solver({
+        fragmentShader : source( 'march' ) ,
+        uniforms : new marchUniforms( fcolor ) ,
+        targets : {
+                ocolor : { location : 0, target : scolor } 
+        }
+    } ) ;
+
+// odd (s) time steps ----------------------------------------------------
+var smarch = new Abubu.Solver({
+        fragmentShader : source( 'march' ) ,
+        uniforms : new marchUniforms( scolor ) ,
+        targets : {
+                ocolor : { location : 0, target : fcolor } 
+        }
+    } ) ;
+
+// defibriliate ----------------------------------------------------------
+function readOption( opt, def ){
+    return (opt) ? opt : def ;
+}
+class ElectrodeDefibrilator{
+    constructor(opts={}){
+        // read all constructor options ..................................
+        this._mx            = readOption( opts.mx ,             8       ) ;
+        this._my            = readOption( opts.my ,             8       ) ;
+        this._fcolor        = readOption( opts.fcolor ,         null    ) ;
+        this._scolor        = readOption( opts.scolor ,         null    ) ;
+        this._thickness     = readOption( opts.thickness,       0.04    ) ;
+        this._uThreshold    = readOption( opts.uThreshold,      0.3     ) ;
+        this._vThreshold    = readOption( opts.vThreshold,      0.07    ) ;
+        this._electrodeSize = readOption( opts.electrodeSize,   0.03    ) ;
+
+        this._electrodeCoordinates = 
+            new Abubu.Float32Texture( this.mx, this.my ) ;
+
+        this._stimulationRegion = 
+            new Abubu.Float32Texture( this.width, this.height) ;
+        
+        this._activeElectrodes = 
+            new Abubu.Float32Texture(this.mx, this.my );
+
+        // coordinator ...................................................
+        this.coordinator = new Abubu.Solver({
+            fragmentShader : source( 'coordinator' ) ,
+            targets : {
+                crd : { location : 0 , target : this.electrodeCoordinates}
+            }
+        } ) ;
+        this.coordinator.render() ;
+
+        // determine stimulation region ..................................
+        this.step1 = new Abubu.Solver({
+            fragmentShader : source( 'defib_s1' ) ,
+            uniforms : { 
+                icolor      : { type : 's' ,     value : this.fcolor , 
+                    magFilter: 'linear' } ,
+                thickness   : { type : 'f', value : this.thickness  } ,
+                uThreshold  : { type : 'f', value : this.uThreshold } ,
+                vThreshold  : { type : 'f', value : this.vThreshold } ,
+            } ,
+            //canvas : document.getElementById('canvas_5') ,
+            targets : {
+                ocolor : { location : 0, target : this.stimulationRegion }
+            } 
+        } ) ;
+
+        // determine active electrodes ...................................
+        this.step2 = new Abubu.Solver({
+            fragmentShader : source( 'defib_s2') ,
+            uniforms :{
+                icolor : { type : 't', value : this.stimulationRegion } ,
+                mx      : { type : 'i', value : this.mx } ,
+                my      : { type : 'i', value : this.my } ,
+            } ,
+            targets : {
+                ocolor : { location : 0 , target: this.activeElectrodes }
+            }
+        } ) ;
+ 
+        // defib using electrodes ........................................
+        this.step3 = new Abubu.Solver({
+            fragmentShader : source('defib_s3') ,
+            uniforms : {
+                icolor : { type : 't', value : this.fcolor } ,
+                activeElectrodes : {
+                    type : 't', value : this.activeElectrodes } ,
+                electrodeCoordinates :{
+                    type : 's', value : this.electrodeCoordinates ,
+                    minFilter : 'nearest', magFilter: 'nearest' } ,
+                electrodeSize : { type : 'f', value : this.electrodeSize }
+            } ,
+            targets : {
+                ocolor : { location : 0, target : this.scolor } ,
+            } 
+        } ) ;
+
+        // last step of defib ............................................
+        this.step4 = new Abubu.Copy( this.scolor , this.fcolor )  ;
+
+
+    } // end of constructor ----------------------------------------------
+
+    get fcolor(){
+        return this._fcolor ;
+    }
+    get scolor(){
+        return this._scolor ;
+    }
+    get width(){
+        return this.fcolor.width ;
+    }
+    get height(){
+        return this.fcolor.height ;
+    }
+
+    get electrodeCoordinates(){
+        return this._electrodeCoordinates ;
+    }
+
+    get stimulationRegion(){
+        return this._stimulationRegion ;
+    }
+    get activeElectrodes(){
+        return this._activeElectrodes ;
+    }
+
+    // mx ................................................................
+    get mx(){
+        return this._mx ;
+    }
+    set mx(m){
+        this._mx = m ;
+        this.activeElectrodes.width = this.mx ;
+        this.electrodeCoordinates.width = this.mx ;
+        this.step2.uniforms.mx.value = this.mx ;
+        this.coordinator.render() ;
+    }
+
+    // mty ...............................................................
+    get my(){
+        return this._my ;
+    }
+    set my(m){
+        this._my = m ;
+        this.activeElectrodes.height = this.my ;
+        this.electrodeCoordinates.height = this.my ;
+        this.step2.uniforms.my.value = this.my ;
+        this.coordinator.render() ;
+    }
+
+    // electrodeSize .....................................................
+    get electrodeSize(){
+        return this._electrodeSize ;
+    }
+    set electrodeSize(ns){
+        this._electrodeSize = ns ;
+        this.step3.uniforms.electrodeSize.value = ns ;
+    }
+
+    // thickness .........................................................
+    get thickness(){
+        return this._thickness ; 
+    }
+    set thickness(nv){
+        this._thickness = nv ;
+        this.step1.uniforms.thickness.value = nv ;
+    }
+
+    // tThreshold ........................................................
+    get uThreshold(){
+        return this._uThreshold ;
+    }
+    set uThreshold(ut){
+        this._uThreshold = ut ;
+        this.step1.uniforms.uThreshold.value = ut ;
+    }
+
+    // vThreshold ........................................................
+    get vThreshold(){
+        return this._vThreshold ;
+    }
+    set vThreshold(vt){
+        this._vThreshold = vt ;
+        this.step1.uniforms.vThreshold.value = vt ;
+    }
+
+    // run ...............................................................
+    run(){
+        this.step1.render() ;
+        this.step2.render() ;
+        this.step3.render() ;
+        this.step4.render() ;
+    }
+    render(){
+        this.run() ;
+    }
+
+    defibrillate(){
+        this.run() ;
+    }
+}
+
+env.uThreshold = 0.3
+env.vThreshold = 0.07 ;
+
+env.defib = new ElectrodeDefibrilator({
+    mx : 16 , my :16 , fcolor : fcolor, scolor : scolor,
+    thickness : 0.02 , electrodeSize : 0.03, 
+    uThreshold : env.uThreshold, 
+    vThreshold : env.vThreshold,
+} ) ;
+
+env.defibrillate = function(){
+    env.defib.run() ;
+    refreshDisplay() ;
+}
+
+// march the solution for two time steps ---------------------------------
+function march(){
+    fmarch.render() ;
+    smarch.render() ;
+    env.time += env.dt*2. ;
+}
+
+/*------------------------------------------------------------------------
+ * Post processing 
+ *------------------------------------------------------------------------
+ */
+
+// 2D plots --------------------------------------------------------------
+
+// uplot .................................................................
+var uplot = new Abubu.Plot2D({
+    target : fcolor,            /* the texture to visualize             */
+    channel : 'r',              /* the channel of interest:
+                                        can be : 'r', 'g', 'b', or 'a' 
+                                        defualt value is 'r'            */
+    minValue : -.2 ,            /* minimum value on the colormap        */
+    maxValue : 0.9 ,            /* maximum value on the colormap        */
+    colorbar : true ,           /* if you need to show the colorbar     */
+    probeVisible : true ,
+    canvas : canvas_1 ,         /* the canvas to draw on                */
+}) ;
+
+uplot.addMessage('FitzHugh-Nagumo Model', 0.05,0.05,{
+    font : 'Bold 12pt Arial' ,
+    align : 'start',
+    style : '#ffffff', 
+    } ) ;
+
+uplot.time = uplot.addMessage('Time = 0.00 ms' , 0.05,0.13,{
+    font : '11pt Arial' ,
+    align : 'start',
+    style : '#ffffff', 
+} ) ;
+
+uplot.init() ;   /* initialize the plot */
+uplot.render() ;
+
+// thresholdPlot .........................................................
+var thresholdPlot = new Abubu.Solver({
+    fragmentShader : source("2dPhaseMap") ,
+    uniforms : {
+        inColor : { type : 't', value : fcolor } ,
+        thickness  : { type : 'f', value : env.thickness   } ,
+        uThreshold : { type : 'f', value : env.uThreshold  } ,
+        vThreshold : { type : 'f', value : env.vThreshold  } ,
+    } ,
+    canvas : canvas_2 
+} ) ;
+
+// phase plot ------------------------------------------------------------
+var pplot = new Abubu.PhasePlot({
+    canvas : canvas_4 ,
+    grid : 'on',
+    probePosition : [0.5,0.5], 
+
+    // horizontal axis info
+    xcolor : fcolor ,
+    xchannel : 'g' ,
+    xmin    : -0.05 ,
+    xmax    : 0.15 ,
+    nx      : 4, 
+
+    // vertical axis info
+    ycolor      : fcolor ,
+    ychannel    : 'r' ,
+    ymin        : -.3 ,
+    ymax        : 1. ,
+    ny          : 13, 
+
+    // xticks
+    xticks : {  
+        mode : 'auto', 
+        unit : '', 
+        font : '11pt Times' , precision : 2 } ,
+    
+    // yticks
+    yticks : {  
+        mode : 'auto', unit : '', font : '11pt Times', 
+        precision : 1 } ,
+}) ; 
+
+// signal plots ----------------------------------------------------------
+var splot = new Abubu.SignalPlot({
+    noPltPoints : 1024, // number of sample points
+    grid : 'on', 
+    nx   : 10 , // number of division in x 
+    ny   : 13 , // ... in y 
+
+    xticks : {  mode : 'auto', unit : 'ms', font : '11pt Times' } ,
+    yticks : {  mode : 'auto', unit : '' , 
+                font : '12pt Times',precision : 1  } ,
+    canvas : canvas_3 
+} ) ;
+
+splot.addMessage(
+    'Signal at the probe', 0.5,0.05,{
+        font : 'Bold 14pt Arial' ,
+        align: 'center',
+        style: "#ff0000" ,
+    } ) ;
+
+// v-signal ..............................................................
+env.vsgn = splot.addSignal( fcolor, {
+    channel : 'g',
+    minValue : -.3,
+    maxValue : 1.0 ,
+    restValue : 0 ,
+    color : [ 0.,.4,0.0 ],
+    visible : true ,
+    timewindow : 1000 , 
+    probePosition : [0.5,0.5] 
+} ) ;
+
+// u-signal ..............................................................
+env.usgn = splot.addSignal( fcolor, {
+    channel : 'r',
+    minValue : -.3,
+    maxValue : 1.0 ,
+    restValue : 0 ,
+    color : [ .4,0.,0.0 ],
+    visible : true ,
+    timewindow : 1000 , 
+    probePosition : [0.5,0.5] 
+} ) ;
+
+// updateSignals ---------------------------------------------------------
+function updateSignals(){
+    env.usgn.update(env.time) ;
+    env.vsgn.update(env.time) ;
+}
+
+// refreshDisplay ........................................................
+function refreshDisplay(){
+    splot.render() ;
+    pplot.render() ; 
+    uplot.time.text = "Time = " + env.time.toFixed(2) + " ms" ;
+    uplot.init() ;
+    uplot.render() ;
+    thresholdPlot.render() ;
+}
+
+// initialize program ....................................................
+env.initialize = function(){
+    env.time = 0 ;
+    init.render() ;
+    splot.init() ;
+    pplot.init() ;
+    env.usgn.init(0) ;
+    env.vsgn.init(0) ;
+    uplot.init() ;
+}
+
+// solution and visualization sequence ...................................
+env.alwaysRefresh = true ;
+function run(){
+    if (env.running){
+        for(var i = 0 ; i<env.skip ; i++){
+            march() ;
+            updateSignals() ;
+        }
+    }
+    if ( env.running || env.alwaysRefresh ){
+        refreshDisplay() ;
+    }
+    requestAnimationFrame(run) ;
+}
+
+// click -----------------------------------------------------------------
+
+// click defaults
+env.clickRadius         = 0.1 ;
+env.clickPosition       = [0.,0.] ;
+env.clickU      = 1. ;
+env.clickV      = 0. ;
+env.clickAlterU = true ;
+env.clickAlterV = false ;
+
+var click = new Abubu.Solver({
+    fragmentShader : source( 'click' ) ,
+    uniforms : {
+        inTexture : { type : 't', value : fcolor } ,
+        clickRadius: { type : 'f', value : env.clickRadius } ,
+        clickPosition: { type : 'v2', value : env.clickPosition } ,
+        clickU      : { type : 'f', value : env.clickU          } ,
+        clickV      : { type : 'f', value : env.clickV          } ,
+        clickAlterU : { type : 'b', value : env.clickAlterU     } ,
+        clickAlterV : { type : 'b', value : env.clickAlterV     } ,
+    } ,
+    targets : {
+            ocolor : { location : 0 , target : scolor } ,
+    }
+} ) ;
+
+var clickCopy = new Abubu.Copy( scolor, fcolor ) ;
+
+var mouseDrag_1 = new Abubu.MouseListener({
+    canvas : canvas_1 ,
+    event : 'drag' ,
+    callback : function(e){
+        click.uniforms.clickPosition.value = e.position ;
+        click.render() ;
+        clickCopy.render() ;
+        refreshDisplay() ;
+    }
+} ) ; 
+
+var mouseDrag_2 = new Abubu.MouseListener({
+    canvas : canvas_2 ,
+    event : 'drag' ,
+    callback : function(e){
+        click.uniforms.clickPosition.value = e.position ;
+        click.render() ;
+        clickCopy.render() ;
+        refreshDisplay() ;
+    }
+} ) ; 
+
+
+// set probe position ....................................................
+var setProbe = new Abubu.MouseListener({
+    canvas : canvas_1 ,
+    event  : 'click' ,
+    shift  : true ,
+    callback : function(e){
+        pplot.probePosition = e.position ;
+        pplot.init() ;
+        uplot.setProbePosition(e.position) ;
+        splot.setProbePosition(e.position) ;
+        splot.init() ;
+        pplot.init() ;
+        uplot.init() ;
+        
+        refreshDisplay() ;
+    }
+} ) ;
+
+var setProbe = new Abubu.MouseListener({
+    canvas : canvas_2 ,
+    event  : 'click' ,
+    shift  : true ,
+    callback : function(e){
+        pplot.probePosition = e.position ;
+        pplot.init() ;
+        uplot.setProbePosition(e.position) ;
+        splot.setProbePosition(e.position) ;
+        splot.init() ;
+        pplot.init() ;
+        uplot.init() ;
+        refreshDisplay() ;
+    }
+} ) ;
+
+
+// saveCsvFile : save an array to disk as comma separated values .........
+env.csvFileName = 'fcolor.csv' ;
+env.saveCsvFile = function(){
+    var link = document.createElement('a') ;
+    var data = "data:text;charset=utf-8," +
+        fcolor.width + ',' + 
+        fcolor.height ;  
+    var width = fcolor.width ;
+    var height= fcolor.height ;
+    var fval  = fcolor.value ;
+
+    for(var i=0 ; i<(width*height) ; i++){
+        var indx = i*4 ;
+        data += ','+ 
+        fval[indx  ].toExponential()+ ',' +
+        fval[indx+1].toExponential()+ ',' +
+        fval[indx+2].toExponential()+ ',' +
+        fval[indx+3].toExponential() ;
+    }
+
+    var csv = encodeURI( data ) ;
+    link.setAttribute( 'href', csv ) ;
+    link.setAttribute( 'download', env.csvFileName ) ;
+    link.click() ;
+}
+
+// loadCsvFile  : read a CSV file into the html page .....................
+env.loadCsvFile = document.createElement('input') ;
+env.loadCsvFile.setAttribute('type', 'file') ;
+env.loadCsvFile.onchange = function(){
+    /* check if a no file was selected */
+    if ( !env.loadCsvFile.files[0] ){        
+        return ;
+    } ;
+
+    var file = env.loadCsvFile.files[0] ;
+    var reader = new FileReader() ;
+    reader.readAsText(file) ;
+
+    // only the when the file is loaded it can be analyzed
+    reader.onload = function(event){
+        var result  = event.target.result ;
+        var data = result.split(',') ;
+
+        var width = parseInt(data[0]) ;
+        var height = parseInt(data[1]) ;
+
+        var table = new Float32Array(width*height*4) ;
+        var p = 0 ;
+        for (var i=2 ; i< data.length; i++){ // modify accordingly
+            table[p++] = parseFloat( data[i]) ;
+        }
+
+        fcolor.data = table ;
+        scolor.data = table ;
+    }
+}
+
+// add multiple parameters to gui ........................................
+function addToGui( 
+        guiElemenent ,  // gui element to add options into
+        obj,            // object that holds parameters
+        paramList,      // array of strings that contains list 
+                        // of parmeters to be added
+        solverList      // array of solvers that need to be update upon 
+                        // change of a parameter through gui interactions
+    ){
+    var elements = {} ;
+    for(i in paramList){
+        var param = paramList[i] ;
+        elements[param] = guiElemenent.add(obj, param )  ;
+        elements[param].onChange(function(){
+            Abubu.setUniformInSolvers( 
+                    this.property , // this refers to the GUI element 
+                    this.object[this.property] , 
+                    solverList ) ;
+        } ) ;
+    }
+    return elements ;
+}
+
+// .......................................................................
+// create the graphical user interface 
+// .......................................................................
+function createGui(){
+    var gui = new Abubu.Gui() ;     /*  create a graphical user 
+                                        interface               */
+    var panel = gui.addPanel({width:300}) ; // add a panel to the GUI
+
+
+    // model parameters added to GUI -------------------------------------
+    var mdl = panel.addFolder('Model Parameters') ;
+    mdl.elements = addToGui( mdl, env, 
+            ['a','b','epsilon','dt','diffCoef'], 
+            [fmarch, smarch] ) ;
+
+    // pace maker --------------------------------------------------------
+    var pcm = panel.addFolder('Pace Maker') ;
+    pcm.elements = addToGui( pcm, env, 
+            [   'pacemakerActive' ,
+                'pacemakerCircular' ,
+                'pacemakerX' ,
+                'pacemakerY' ,
+                'pacemakerRadius' ,
+                'period'            ], 
+            [fmarch , smarch] ) ;
+
+    pcm.elements.period.step(1) ;
+
+    // clicker -----------------------------------------------------------
+    var clk = panel.addFolder("Click") ;
+    clk.elements = addToGui( clk, env,
+        [ 
+            "clickRadius", 
+            "clickU", 
+            "clickV",
+            "clickAlterU" ,
+            "clickAlterV" ,
+        ] ,
+        [ click ] ) ;
+    clk.elements.clickRadius.step(0.01) ;
+
+    // defibrilation -----------------------------------------------------
+    var dfb = panel.addFolder("Defibrillation") ;
+    dfb.elements = addToGui( dfb, env.defib, 
+        [
+            "mx",
+            "my",
+            "electrodeSize" ,
+            "thickness" ,
+            "uThreshold" ,
+            "vThreshold" 
+        ] , [] ) ;
+   
+    dfb.add(env.defib,'defibrillate') ;
+    dfb.open() ;
+    // csv files ---------------------------------------------------------
+    var csv = panel.addFolder('Save and Load CSV') ;
+    csv.add(env,'csvFileName' ) ;
+    csv.add(env,'saveCsvFile' ) ;
+    csv.add(env.loadCsvFile , 'click').name('loadCsvFile') ;
+
+    // execution ---------------------------------------------------------
+    var exe = panel.addFolder('Execution') ;
+    exe.add(env,'time').listen() ;
+    exe.add(env,'skip') ;
+    exe.add(env,'initialize') ;
+    //exe.add(env,'alwaysRefresh').name("Always Refresh Disp").listen() ; 
+    exe.add(env,'running').name("Running/Solve/Pause").listen() ; 
+    exe.open() ;
+}
+
+// execute createGui to create the graphical user interface ..............
+createGui() ;
+
+// execute run function to initiate simulation ...........................
+run() ;
+</script>
+
+</body>
+</html>

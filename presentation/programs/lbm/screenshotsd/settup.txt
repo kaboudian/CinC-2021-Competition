@@ -1,0 +1,14 @@
+viscosity = 0.05
+
+Von-Karmen shedding 	u0=0.17		Re = 54
+Von-Karman Suppression 	u=0.17		Re = 54
+Von-Karman Suppression 	and tail shedding u=0.20, Re = 64
+Von-Karman Suppression 	with effects on cylinder u=0.25, Re = 80
+
+D=16
+
+Implied reynolds
+Re=54
+Re=54
+Re=64
+Re=80
