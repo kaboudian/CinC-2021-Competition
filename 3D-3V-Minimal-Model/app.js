@@ -496,6 +496,12 @@ function loadWebGL(){
             env.clickCopy.render() ;
         } , { mousemove : true  } 
     ) ;
+    env.doubleClick = new Abubu.DoubleClickListener(
+        canvas_1 , (e) =>{
+            env.click.uniforms.clickPosition.value = e.position ;
+            env.click.render() ;
+            env.clickCopy.render() ;
+        } ) ;
 
     env.shiftClick = new Abubu.ShiftClickListener(
         canvas_1,
